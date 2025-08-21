@@ -1,0 +1,72 @@
+[
+  {
+    "system": "MArrayCRDT",
+    "operations": 1000,
+    "time_ms": 71.354445,
+    "ops_per_sec": 14014.543873195285,
+    "memory_mb": 1.1328125,
+    "insert_operations": 981,
+    "delete_operations": 18,
+    "final_document_length": 971
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 5000,
+    "time_ms": 1484.653618,
+    "ops_per_sec": 3367.7889168084725,
+    "memory_mb": 5.2265625,
+    "insert_operations": 4235,
+    "delete_operations": 764,
+    "final_document_length": 3545
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 10000,
+    "time_ms": 6259.271791,
+    "ops_per_sec": 1597.6299374599246,
+    "memory_mb": 9.84375,
+    "insert_operations": 8489,
+    "delete_operations": 1510,
+    "final_document_length": 7115
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 20000,
+    "time_ms": 26881.206488,
+    "ops_per_sec": 744.0142245448757,
+    "memory_mb": 18.84375,
+    "insert_operations": 17150,
+    "delete_operations": 2849,
+    "final_document_length": 14544
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 30000,
+    "time_ms": 59882.548001,
+    "ops_per_sec": 500.9806863846044,
+    "memory_mb": 26.0859375,
+    "insert_operations": 24625,
+    "delete_operations": 5374,
+    "final_document_length": 19624
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 40000,
+    "time_ms": 109678.422463,
+    "ops_per_sec": 364.7025467884897,
+    "memory_mb": 35.21875,
+    "insert_operations": 32349,
+    "delete_operations": 7650,
+    "final_document_length": 25249
+  },
+  {
+    "system": "MArrayCRDT",
+    "operations": 50000,
+    "time_ms": 169019.58767,
+    "ops_per_sec": 295.8237012009627,
+    "memory_mb": 46.2265625,
+    "insert_operations": 41399,
+    "delete_operations": 8600,
+    "final_document_length": 33505
+  }
+]

@@ -1,0 +1,10 @@
+system,operations,time_ms,ops_per_sec,memory_mb
+Automerge,1000,157,6369.4,5.9
+Automerge,5000,530,9434.0,29.3
+Automerge,10000,1162,8605.9,58.6
+Automerge,20000,3513,5693.1,117.2
+Automerge,30000,8559,3505.1,175.8
+Automerge,40000,16081,2487.4,234.4
+Automerge,50000,25101,1992.0,293.0
+MArrayCRDT,10000,6125,1632.7,1.4
+Baseline,259778,2899,89609.5,0.1
