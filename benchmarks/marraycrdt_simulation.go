@@ -90,13 +90,13 @@ func getMemoryUsageMB() float64 {
 	return float64(m.Alloc) / 1024 / 1024
 }
 
-// runMArrayCRDTBenchmark runs a benchmark with MArrayCRDT
-func runMArrayCRDTBenchmark(operations []EditingOperation, maxOps int) MArrayBenchmarkResult {
+// runMArrayCRDTBenchmarkWithSnapshots runs a single benchmark with snapshots at milestone operations
+func runMArrayCRDTBenchmarkWithSnapshots(operations []EditingOperation, snapshotPoints []int) []MArrayBenchmarkResult {
 	runtime.GC()
 	startMem := getMemoryUsageMB()
 	
 	// Initialize MArrayCRDT
-	array := marraycrdt.New[string]("site1")
+	array := marraycrdt.New[string]("replica1")
 	
 	// Track element IDs for deletion (simple approach)
 	var elementIDs []string
@@ -105,17 +105,15 @@ func runMArrayCRDTBenchmark(operations []EditingOperation, maxOps int) MArrayBen
 	deleteOps := 0
 	
 	startTime := time.Now()
+	var results []MArrayBenchmarkResult
+	nextSnapshotIdx := 0
 	
 	opCount := 0
-	for i := 0; i < len(operations) && opCount < maxOps; i++ {
+	for i := 0; i < len(operations) && nextSnapshotIdx < len(snapshotPoints); i++ {
 		operation := operations[i]
 		
 		// Process each atomic operation within this edit operation
 		for _, atomicOp := range operation.Ops {
-			if opCount >= maxOps {
-				break
-			}
-			
 			if atomicOp.Action == "set" && atomicOp.Insert && atomicOp.Value != "" {
 				// This is an insert operation
 				// For simplicity, append to end (MArrayCRDT handles ordering)
@@ -136,37 +134,58 @@ func runMArrayCRDTBenchmark(operations []EditingOperation, maxOps int) MArrayBen
 					}
 				}
 			}
+			
+			// Check if we've reached a snapshot point
+			if nextSnapshotIdx < len(snapshotPoints) && opCount >= snapshotPoints[nextSnapshotIdx] {
+				elapsed := time.Since(startTime)
+				runtime.GC()
+				currentMem := getMemoryUsageMB()
+				
+				memoryUsed := currentMem - startMem
+				if memoryUsed < 0.01 {
+					memoryUsed = 0.01 // Minimum reasonable value
+				}
+				
+				opsPerSec := float64(opCount) / elapsed.Seconds()
+				
+				result := MArrayBenchmarkResult{
+					System:                "MArrayCRDT",
+					Operations:            opCount,
+					TimeMs:                float64(elapsed.Nanoseconds()) / 1e6,
+					OpsPerSec:             opsPerSec,
+					MemoryMB:              memoryUsed,
+					InsertOperations:      insertOps,
+					DeleteOperations:      deleteOps,
+					FinalDocumentLength:   array.Len(),
+				}
+				
+				results = append(results, result)
+				fmt.Printf("Snapshot at %d operations: %.2f ms, %.0f ops/sec, %.2f MB, length=%d\n", 
+					opCount, result.TimeMs, result.OpsPerSec, result.MemoryMB, result.FinalDocumentLength)
+				
+				nextSnapshotIdx++
+			}
+			
+			// Progress reporting
+			if opCount%5000 == 0 && opCount > 0 {
+				elapsed := time.Since(startTime)
+				opsPerSec := float64(opCount) / elapsed.Seconds()
+				fmt.Printf("  Progress: %d operations (%.0f ops/sec)\n", opCount, opsPerSec)
+			}
+			
+			// Break if we've processed all required snapshots
+			if nextSnapshotIdx >= len(snapshotPoints) {
+				break
+			}
 		}
 		
-		// Progress reporting
-		if opCount%5000 == 0 && opCount > 0 {
-			elapsed := time.Since(startTime)
-			opsPerSec := float64(opCount) / elapsed.Seconds()
-			fmt.Printf("  Progress: %d/%d (%.0f ops/sec)\n", opCount, maxOps, opsPerSec)
+		// Break outer loop if we've processed all required snapshots
+		if nextSnapshotIdx >= len(snapshotPoints) {
+			break
 		}
 	}
 	
-	elapsed := time.Since(startTime)
-	runtime.GC()
-	endMem := getMemoryUsageMB()
-	
-	memoryUsed := endMem - startMem
-	if memoryUsed < 0.01 {
-		memoryUsed = 0.01 // Minimum reasonable value
-	}
-	
-	opsPerSec := float64(opCount) / elapsed.Seconds()
-	
-	return MArrayBenchmarkResult{
-		System:                "MArrayCRDT",
-		Operations:            opCount,
-		TimeMs:                float64(elapsed.Nanoseconds()) / 1e6,
-		OpsPerSec:             opsPerSec,
-		MemoryMB:              memoryUsed,
-		InsertOperations:      insertOps,
-		DeleteOperations:      deleteOps,
-		FinalDocumentLength:   array.Len(),
-	}
+	return results
 }
 
 // writeCSVResults writes results to CSV file
@@ -218,21 +237,17 @@ func main() {
 	
 	fmt.Printf("Loaded %d operations from trace\n", len(operations))
 	
-	// Benchmark at different operation counts
-	operationCounts := []int{1000, 5000, 10000, 20000, 30000, 40000, 50000}
-	var results []MArrayBenchmarkResult
+	// Snapshot points for benchmark measurement
+	snapshotPoints := []int{1000, 5000, 10000, 20000, 30000, 40000, 50000}
 	
-	fmt.Println("\nOperations,Time_ms,Ops_per_sec,Memory_MB,Final_Length")
+	fmt.Println("\nRunning single benchmark with snapshots at milestone operations...")
+	fmt.Println("Operations,Time_ms,Ops_per_sec,Memory_MB,Final_Length")
 	
-	for _, count := range operationCounts {
-		if count > len(operations) {
-			count = len(operations)
-		}
-		
-		fmt.Printf("\nRunning benchmark with %d operations...\n", count)
-		result := runMArrayCRDTBenchmark(operations, count)
-		results = append(results, result)
-		
+	// Run single benchmark with snapshots
+	results := runMArrayCRDTBenchmarkWithSnapshots(operations, snapshotPoints)
+	
+	// Display results
+	for _, result := range results {
 		fmt.Printf("%d,%.2f,%.0f,%.2f,%d\n", 
 			result.Operations, result.TimeMs, result.OpsPerSec, result.MemoryMB, result.FinalDocumentLength)
 	}

@@ -9,7 +9,7 @@ import (
 // TestConcurrentMoves tests that concurrent moves converge correctly
 func TestConcurrentMoves(t *testing.T) {
 	// Create two replicas
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 
 	// Add initial items to replica1
@@ -57,7 +57,7 @@ func TestConcurrentMoves(t *testing.T) {
 // TestConcurrentMovesSameElement tests moving the same element concurrently
 func TestConcurrentMovesSameElement(t *testing.T) {
 	// Create two replicas
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 
 	// Add initial items
@@ -99,7 +99,7 @@ func TestConcurrentMovesSameElement(t *testing.T) {
 // TestConcurrentMoveAndEdit tests that moves and edits don't interfere
 func TestConcurrentMoveAndEdit(t *testing.T) {
 	// Create two replicas
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 
 	// Add initial items
@@ -147,7 +147,7 @@ func TestConcurrentMoveAndEdit(t *testing.T) {
 // TestComplexConcurrentOperations tests multiple concurrent operations
 func TestComplexConcurrentOperations(t *testing.T) {
 	// Create three replicas for more complex scenario
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 	replica3 := New[string]("site3")
 
@@ -170,7 +170,7 @@ func TestComplexConcurrentOperations(t *testing.T) {
 	// Replica3: Move C to position 0 and edit E
 
 	replica1.Move(idD, 1)
-	replica1.Set(idB, "Item B (edited by site1)")
+	replica1.Set(idB, "Item B (edited by replica1)")
 
 	replica2.Move(idB, 4)
 	replica2.Set(idD, "Item D (edited by site2)")
@@ -205,7 +205,7 @@ func TestComplexConcurrentOperations(t *testing.T) {
 
 // TestMoveAfterAndBefore tests the MoveAfter and MoveBefore operations
 func TestMoveAfterAndBefore(t *testing.T) {
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 
 	// Setup
@@ -242,7 +242,7 @@ func TestMoveAfterAndBefore(t *testing.T) {
 
 // TestStressTestMoves performs many concurrent moves
 func TestStressTestMoves(t *testing.T) {
-	replica1 := New[int]("site1")
+	replica1 := New[int]("replica1")
 	replica2 := New[int]("site2")
 
 	// Add more items
@@ -285,7 +285,7 @@ func TestStressTestMoves(t *testing.T) {
 
 // TestSwapOperation tests the swap functionality
 func TestSwapOperation(t *testing.T) {
-	replica1 := New[string]("site1")
+	replica1 := New[string]("replica1")
 	replica2 := New[string]("site2")
 
 	idA := replica1.Push("A")

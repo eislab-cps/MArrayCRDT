@@ -172,9 +172,7 @@ console.log('Updated versions file with ' + versions.length + ' entries');
 
 echo -e "${GREEN}✅ Updated versions list${NC}"
 
-# 5. Archive latest results
-echo -e "\n${BLUE}📦 Archiving results for web UI...${NC}"
-node archive_latest_results.js
+# Results are already in the version directory, no need for additional archiving
 
 echo -e "\n${GREEN}🎯 Complete benchmark suite finished!${NC}"
 echo -e "${GREEN}📊 Results available in: $VERSION_DIR${NC}"

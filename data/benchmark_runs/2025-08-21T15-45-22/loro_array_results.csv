@@ -1,0 +1,8 @@
+system,operations,time_ms,ops_per_sec,memory_mb,final_length
+LoroArray,1000,20,50000,0.5,964
+LoroArray,5000,28,178571.4,2.5,3472
+LoroArray,10000,39,256410.3,5,6980
+LoroArray,20000,76,263157.9,10,14302
+LoroArray,30000,115,260869.6,15,19252
+LoroArray,40000,142,281690.1,20,24700
+LoroArray,50000,183,273224,25,32800

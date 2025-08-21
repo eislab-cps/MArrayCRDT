@@ -111,10 +111,9 @@ async function runBenchmarks() {
     
     const timeMs = endTime - startTime;
     const opsPerSec = (maxOps / timeMs) * 1000;
-    // JavaScript memory measurement is unreliable due to GC
-    // Use maximum heap used during the process as a more reliable estimate
-    const totalMemoryMB = finalMemory / (1024 * 1024);
-    const memoryMB = Math.max(0.01, totalMemoryMB * 0.1); // Conservative estimate
+    // Real memory measurement - no artificial scaling
+    const memoryDiff = finalMemory - initialMemory;
+    const memoryMB = Math.abs(memoryDiff) / (1024 * 1024);
     
     const result = {
       operations: maxOps,

@@ -107,9 +107,9 @@ async function runBenchmarks() {
     
     const timeMs = endTime - startTime;
     const opsPerSec = (maxOps / timeMs) * 1000;
-    // Use a simple estimation approach to avoid negative values
-    const memoryUsedBytes = Math.max(finalMemory - initialMemory, finalMemory * 0.1);
-    const memoryMB = Math.max(0.01, memoryUsedBytes / (1024 * 1024));
+    // Real memory measurement - no artificial scaling
+    const memoryDiff = finalMemory - initialMemory;
+    const memoryMB = Math.abs(memoryDiff) / (1024 * 1024);
     
     const result = {
       operations: maxOps,

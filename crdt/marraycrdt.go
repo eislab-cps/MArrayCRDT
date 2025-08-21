@@ -17,7 +17,7 @@ import (
 type MArrayCRDT[T any] struct {
 	mu     sync.RWMutex
 	items  map[string]*Element[T]
-	siteID string
+	replicaID string
 	clock  *VectorClock
 	config Config
 
@@ -74,11 +74,11 @@ func NewVectorClock() *VectorClock {
 	}
 }
 
-// Increment increments the clock for a site
-func (vc *VectorClock) Increment(siteID string) {
+// Increment increments the clock for a replica
+func (vc *VectorClock) Increment(replicaID string) {
 	vc.mu.Lock()
 	defer vc.mu.Unlock()
-	vc.clocks[siteID]++
+	vc.clocks[replicaID]++
 }
 
 // Merge merges another vector clock into this one
@@ -92,9 +92,9 @@ func (vc *VectorClock) Merge(other *VectorClock) {
 	defer vc.mu.Unlock()
 	defer other.mu.RUnlock()
 
-	for site, clock := range other.clocks {
-		if clock > vc.clocks[site] {
-			vc.clocks[site] = clock
+	for replica, clock := range other.clocks {
+		if clock > vc.clocks[replica] {
+			vc.clocks[replica] = clock
 		}
 	}
 }
@@ -111,17 +111,17 @@ func (vc *VectorClock) After(other *VectorClock) bool {
 	defer other.mu.RUnlock()
 
 	hasGreater := false
-	for site, clock := range vc.clocks {
-		if clock < other.clocks[site] {
+	for replica, clock := range vc.clocks {
+		if clock < other.clocks[replica] {
 			return false
 		}
-		if clock > other.clocks[site] {
+		if clock > other.clocks[replica] {
 			hasGreater = true
 		}
 	}
 
-	for site, clock := range other.clocks {
-		if _, exists := vc.clocks[site]; !exists && clock > 0 {
+	for replica, clock := range other.clocks {
+		if _, exists := vc.clocks[replica]; !exists && clock > 0 {
 			return false
 		}
 	}
@@ -143,8 +143,8 @@ func (vc *VectorClock) Clone() *VectorClock {
 	defer vc.mu.RUnlock()
 
 	newVC := NewVectorClock()
-	for site, clock := range vc.clocks {
-		newVC.clocks[site] = clock
+	for replica, clock := range vc.clocks {
+		newVC.clocks[replica] = clock
 	}
 	return newVC
 }
@@ -154,18 +154,18 @@ func (vc *VectorClock) Fork() *VectorClock {
 	return vc.Clone()
 }
 
-// GetMaxSite returns the site with highest ID for tiebreaking
-func (vc *VectorClock) GetMaxSite() string {
+// GetMaxReplica returns the replica with highest ID for tiebreaking
+func (vc *VectorClock) GetMaxReplica() string {
 	vc.mu.RLock()
 	defer vc.mu.RUnlock()
 
-	maxSite := ""
-	for site := range vc.clocks {
-		if site > maxSite {
-			maxSite = site
+	maxReplica := ""
+	for replica := range vc.clocks {
+		if replica > maxReplica {
+			maxReplica = replica
 		}
 	}
-	return maxSite
+	return maxReplica
 }
 
 // defaultConfig returns default configuration
@@ -198,7 +198,7 @@ func WithAutoSort[T any](less func(a, b T) bool) Option {
 }
 
 // New creates a new MArrayCRDT
-func New[T any](siteID string, opts ...Option) *MArrayCRDT[T] {
+func New[T any](replicaID string, opts ...Option) *MArrayCRDT[T] {
 	config := defaultConfig()
 	for _, opt := range opts {
 		opt(&config)
@@ -206,7 +206,7 @@ func New[T any](siteID string, opts ...Option) *MArrayCRDT[T] {
 
 	return &MArrayCRDT[T]{
 		items:  make(map[string]*Element[T]),
-		siteID: siteID,
+		replicaID: replicaID,
 		clock:  NewVectorClock(),
 		config: config,
 	}
@@ -258,10 +258,10 @@ func (ma *MArrayCRDT[T]) Push(value T) string {
 		VectorClock: ma.clock.Fork(),
 	}
 
-	ma.clock.Increment(ma.siteID)
-	elem.Value.VectorClock.Increment(ma.siteID)
-	elem.Index.VectorClock.Increment(ma.siteID)
-	elem.VectorClock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
+	elem.Value.VectorClock.Increment(ma.replicaID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
+	elem.VectorClock.Increment(ma.replicaID)
 
 	ma.items[id] = elem
 	ma.invalidateCache()
@@ -328,10 +328,10 @@ func (ma *MArrayCRDT[T]) Unshift(value T) string {
 		VectorClock: ma.clock.Fork(),
 	}
 
-	ma.clock.Increment(ma.siteID)
-	elem.Value.VectorClock.Increment(ma.siteID)
-	elem.Index.VectorClock.Increment(ma.siteID)
-	elem.VectorClock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
+	elem.Value.VectorClock.Increment(ma.replicaID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
+	elem.VectorClock.Increment(ma.replicaID)
 
 	ma.items[id] = elem
 	ma.invalidateCache()
@@ -367,10 +367,10 @@ func (ma *MArrayCRDT[T]) Set(id string, value T) bool {
 		return false
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	elem.Value.Data = value
 	elem.Value.VectorClock = ma.clock.Fork()
-	elem.Value.VectorClock.Increment(ma.siteID)
+	elem.Value.VectorClock.Increment(ma.replicaID)
 	elem.VectorClock.Merge(elem.Value.VectorClock)
 
 	return true
@@ -415,10 +415,10 @@ func (ma *MArrayCRDT[T]) Insert(index int, value T) string {
 		VectorClock: ma.clock.Fork(),
 	}
 
-	ma.clock.Increment(ma.siteID)
-	elem.Value.VectorClock.Increment(ma.siteID)
-	elem.Index.VectorClock.Increment(ma.siteID)
-	elem.VectorClock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
+	elem.Value.VectorClock.Increment(ma.replicaID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
+	elem.VectorClock.Increment(ma.replicaID)
 
 	ma.items[id] = elem
 	ma.invalidateCache()
@@ -449,10 +449,10 @@ func (ma *MArrayCRDT[T]) deleteElementLocked(id string) bool {
 		return false
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	elem.Deleted = true
 	elem.DeleteClock = ma.clock.Fork()
-	elem.DeleteClock.Increment(ma.siteID)
+	elem.DeleteClock.Increment(ma.replicaID)
 	elem.VectorClock.Merge(elem.DeleteClock)
 
 	ma.invalidateCache()
@@ -509,10 +509,10 @@ func (ma *MArrayCRDT[T]) Move(id string, toIndex int) bool {
 		}
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	elem.Index.Position = newPos
 	elem.Index.VectorClock = ma.clock.Fork()
-	elem.Index.VectorClock.Increment(ma.siteID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
 	elem.VectorClock.Merge(elem.Index.VectorClock)
 
 	ma.invalidateCache()
@@ -567,10 +567,10 @@ func (ma *MArrayCRDT[T]) MoveAfter(id string, afterID string) bool {
 		newPos = after.Index.Position + ma.config.IndexSpacing
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	elem.Index.Position = newPos
 	elem.Index.VectorClock = ma.clock.Fork()
-	elem.Index.VectorClock.Increment(ma.siteID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
 	elem.VectorClock.Merge(elem.Index.VectorClock)
 
 	ma.invalidateCache()
@@ -623,10 +623,10 @@ func (ma *MArrayCRDT[T]) MoveBefore(id string, beforeID string) bool {
 		newPos = before.Index.Position - ma.config.IndexSpacing
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	elem.Index.Position = newPos
 	elem.Index.VectorClock = ma.clock.Fork()
-	elem.Index.VectorClock.Increment(ma.siteID)
+	elem.Index.VectorClock.Increment(ma.replicaID)
 	elem.VectorClock.Merge(elem.Index.VectorClock)
 
 	ma.invalidateCache()
@@ -654,15 +654,15 @@ func (ma *MArrayCRDT[T]) Sort(less func(a, b T) bool) {
 	})
 
 	// Update indices
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 
 	for i, elem := range elements {
 		elem.Index.Position = float64(i+1) * ma.config.IndexSpacing
 		// Give each element a unique clock
 		elem.Index.VectorClock = ma.clock.Fork()
-		elem.Index.VectorClock.Increment(ma.siteID)
+		elem.Index.VectorClock.Increment(ma.replicaID)
 		elem.VectorClock.Merge(elem.Index.VectorClock)
-		ma.clock.Increment(ma.siteID)
+		ma.clock.Increment(ma.replicaID)
 	}
 
 	ma.invalidateCache()
@@ -679,16 +679,16 @@ func (ma *MArrayCRDT[T]) Reverse() {
 		return
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 
 	for i, elem := range elements {
 		elem.Index.Position = float64(n-i) * ma.config.IndexSpacing
 		// Give each element a unique clock by incrementing for each one
 		elem.Index.VectorClock = ma.clock.Fork()
-		elem.Index.VectorClock.Increment(ma.siteID)
+		elem.Index.VectorClock.Increment(ma.replicaID)
 		elem.VectorClock.Merge(elem.Index.VectorClock)
 		// Increment main clock for next element
-		ma.clock.Increment(ma.siteID)
+		ma.clock.Increment(ma.replicaID)
 	}
 
 	ma.invalidateCache()
@@ -716,15 +716,15 @@ func (ma *MArrayCRDT[T]) Shuffle() {
 		indices[i], indices[j] = indices[j], indices[i]
 	})
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 
 	for i, elem := range elements {
 		elem.Index.Position = indices[i]
 		// Give each element a unique clock
 		elem.Index.VectorClock = ma.clock.Fork()
-		elem.Index.VectorClock.Increment(ma.siteID)
+		elem.Index.VectorClock.Increment(ma.replicaID)
 		elem.VectorClock.Merge(elem.Index.VectorClock)
-		ma.clock.Increment(ma.siteID)
+		ma.clock.Increment(ma.replicaID)
 	}
 
 	ma.invalidateCache()
@@ -747,16 +747,16 @@ func (ma *MArrayCRDT[T]) Rotate(n int) {
 		n += length
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 
 	for i, elem := range elements {
 		newPos := (i + n) % length
 		elem.Index.Position = float64(newPos+1) * ma.config.IndexSpacing
 		// Give each element a unique clock
 		elem.Index.VectorClock = ma.clock.Fork()
-		elem.Index.VectorClock.Increment(ma.siteID)
+		elem.Index.VectorClock.Increment(ma.replicaID)
 		elem.VectorClock.Merge(elem.Index.VectorClock)
-		ma.clock.Increment(ma.siteID)
+		ma.clock.Increment(ma.replicaID)
 	}
 
 	ma.invalidateCache()
@@ -774,20 +774,20 @@ func (ma *MArrayCRDT[T]) Swap(id1, id2 string) bool {
 		return false
 	}
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 
 	// Swap positions
 	elem1.Index.Position, elem2.Index.Position = elem2.Index.Position, elem1.Index.Position
 
 	// Give each element a unique clock
 	elem1.Index.VectorClock = ma.clock.Fork()
-	elem1.Index.VectorClock.Increment(ma.siteID)
+	elem1.Index.VectorClock.Increment(ma.replicaID)
 	elem1.VectorClock.Merge(elem1.Index.VectorClock)
 	
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	
 	elem2.Index.VectorClock = ma.clock.Fork()
-	elem2.Index.VectorClock.Increment(ma.siteID)
+	elem2.Index.VectorClock.Increment(ma.replicaID)
 	elem2.VectorClock.Merge(elem2.Index.VectorClock)
 
 	ma.invalidateCache()
@@ -832,7 +832,7 @@ func (ma *MArrayCRDT[T]) mergeElementWithLWW(local, remote *Element[T]) {
 			VectorClock: remote.Value.VectorClock.Clone(),
 		}
 	} else if local.Value.VectorClock.Concurrent(remote.Value.VectorClock) {
-		if remote.Value.VectorClock.GetMaxSite() > local.Value.VectorClock.GetMaxSite() {
+		if remote.Value.VectorClock.GetMaxReplica() > local.Value.VectorClock.GetMaxReplica() {
 			local.Value = &VersionedValue[T]{
 				Data:        remote.Value.Data,
 				VectorClock: remote.Value.VectorClock.Clone(),
@@ -850,18 +850,18 @@ func (ma *MArrayCRDT[T]) mergeElementWithLWW(local, remote *Element[T]) {
 	} else if local.Index.VectorClock.Concurrent(remote.Index.VectorClock) {
 		// For concurrent operations, use deterministic tiebreaker
 		// Always pick the same winner regardless of merge direction
-		remoteMaxSite := remote.Index.VectorClock.GetMaxSite()
-		localMaxSite := local.Index.VectorClock.GetMaxSite()
+		remoteMaxReplica := remote.Index.VectorClock.GetMaxReplica()
+		localMaxReplica := local.Index.VectorClock.GetMaxReplica()
 		
-		// Pick winner based on site ID comparison
-		if remoteMaxSite > localMaxSite {
+		// Pick winner based on replica ID comparison
+		if remoteMaxReplica > localMaxReplica {
 			local.Index = &VersionedIndex{
 				Position:    remote.Index.Position,
 				VectorClock: remote.Index.VectorClock.Clone(),
 			}
 			ma.invalidateCache()
-		} else if remoteMaxSite == localMaxSite {
-			// If sites are equal, use position as tiebreaker for determinism
+		} else if remoteMaxReplica == localMaxReplica {
+			// If replicas are equal, use position as tiebreaker for determinism
 			if remote.Index.Position < local.Index.Position {
 				local.Index = &VersionedIndex{
 					Position:    remote.Index.Position,
@@ -950,8 +950,8 @@ func (ma *MArrayCRDT[T]) resolveDeleteStatusLWW(local, remote *Element[T]) bool 
 			// Keep current latest
 		} else {
 			// Concurrent - use tiebreaker
-			// For concurrent operations, prefer the deterministic site ID ordering
-			if op.Clock.GetMaxSite() > latestOp.Clock.GetMaxSite() {
+			// For concurrent operations, prefer the deterministic replica ID ordering
+			if op.Clock.GetMaxReplica() > latestOp.Clock.GetMaxReplica() {
 				latestOp = op
 			}
 		}
@@ -973,7 +973,7 @@ func (ma *MArrayCRDT[T]) Clone() *MArrayCRDT[T] {
 
 	newArray := &MArrayCRDT[T]{
 		items:  make(map[string]*Element[T]),
-		siteID: ma.siteID,
+		replicaID: ma.replicaID,
 		clock:  ma.clock.Clone(),
 		config: ma.config,
 	}
@@ -1034,9 +1034,9 @@ func (ma *MArrayCRDT[T]) Clear() {
 	ma.mu.Lock()
 	defer ma.mu.Unlock()
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	clock := ma.clock.Fork()
-	clock.Increment(ma.siteID)
+	clock.Increment(ma.replicaID)
 
 	for _, elem := range ma.items {
 		if !elem.Deleted {
@@ -1147,9 +1147,9 @@ func (ma *MArrayCRDT[T]) checkReindexLocked() {
 func (ma *MArrayCRDT[T]) reindexLocked() {
 	sorted := ma.getSortedElementsLocked()
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	clock := ma.clock.Fork()
-	clock.Increment(ma.siteID)
+	clock.Increment(ma.replicaID)
 
 	for i, elem := range sorted {
 		elem.Index.Position = float64(i+1) * ma.config.IndexSpacing
@@ -1171,9 +1171,9 @@ func (ma *MArrayCRDT[T]) maintainSortLocked() {
 		return ma.config.LessFunc(elements[i].Value.Data, elements[j].Value.Data)
 	})
 
-	ma.clock.Increment(ma.siteID)
+	ma.clock.Increment(ma.replicaID)
 	clock := ma.clock.Fork()
-	clock.Increment(ma.siteID)
+	clock.Increment(ma.replicaID)
 
 	for i, elem := range elements {
 		elem.Index.Position = float64(i+1) * ma.config.IndexSpacing
