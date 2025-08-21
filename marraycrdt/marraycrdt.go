@@ -848,12 +848,27 @@ func (ma *MArrayCRDT[T]) mergeElementWithLWW(local, remote *Element[T]) {
 		}
 		ma.invalidateCache()
 	} else if local.Index.VectorClock.Concurrent(remote.Index.VectorClock) {
-		if remote.Index.VectorClock.GetMaxSite() > local.Index.VectorClock.GetMaxSite() {
+		// For concurrent operations, use deterministic tiebreaker
+		// Always pick the same winner regardless of merge direction
+		remoteMaxSite := remote.Index.VectorClock.GetMaxSite()
+		localMaxSite := local.Index.VectorClock.GetMaxSite()
+		
+		// Pick winner based on site ID comparison
+		if remoteMaxSite > localMaxSite {
 			local.Index = &VersionedIndex{
 				Position:    remote.Index.Position,
 				VectorClock: remote.Index.VectorClock.Clone(),
 			}
 			ma.invalidateCache()
+		} else if remoteMaxSite == localMaxSite {
+			// If sites are equal, use position as tiebreaker for determinism
+			if remote.Index.Position < local.Index.Position {
+				local.Index = &VersionedIndex{
+					Position:    remote.Index.Position,
+					VectorClock: remote.Index.VectorClock.Clone(),
+				}
+				ma.invalidateCache()
+			}
 		}
 	}
 
