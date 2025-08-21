@@ -6,8 +6,9 @@ const path = require('path');
 // Load the editing trace data
 function loadEditingTrace() {
   const tracePath = path.join(__dirname, '../../data/paper.json');
-  const data = JSON.parse(fs.readFileSync(tracePath, 'utf8'));
-  return data;
+  const fileContent = fs.readFileSync(tracePath, 'utf8');
+  const lines = fileContent.trim().split('\n');
+  return lines.map(line => JSON.parse(line));
 }
 
 // Extract operations from the trace

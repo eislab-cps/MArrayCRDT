@@ -1,0 +1,8 @@
+system,operations,time_ms,ops_per_sec,memory_mb,final_length
+Automerge,1000,231,4329,6.67,964
+Automerge,5000,882,5668.9,20.39,3472
+Automerge,10000,2027,4933.4,-119.56,6980
+Automerge,20000,6037,3312.9,-50.65,14302
+Automerge,30000,12010,2497.9,-0.86,19252
+Automerge,40000,32722,1222.4,0.18,24700
+Automerge,50000,49029,1019.8,0.04,32800

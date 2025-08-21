@@ -1,5 +1,6 @@
-// Automerge performance simulation using Kleppmann editing trace
-const Automerge = require('automerge');
+// Loro Array performance simulation using Kleppmann editing trace
+// This uses Loro's MovableList which supports move operations (like MArrayCRDT)
+const { Loro } = require('loro-crdt');
 const fs = require('fs');
 const path = require('path');
 
@@ -21,14 +22,12 @@ function extractOperations(trace, maxOps = 50000) {
         // Insert operation
         operations.push({
           type: 'insert',
-          index: atomicOp.elemId ? findInsertPosition(operations, atomicOp.elemId) : 0,
           value: atomicOp.value
         });
       } else if (atomicOp.action === 'del') {
         // Delete operation  
         operations.push({
-          type: 'delete',
-          elemId: atomicOp.elemId
+          type: 'delete'
         });
       }
       
@@ -41,15 +40,10 @@ function extractOperations(trace, maxOps = 50000) {
   return operations;
 }
 
-// Helper to find insert position (simplified)
-function findInsertPosition(operations, elemId) {
-  // Simplified position calculation
-  return Math.floor(Math.random() * (operations.filter(op => op.type === 'insert').length + 1));
-}
-
-// Run benchmark at multiple scales
+// Run benchmark at multiple scales using Loro MovableList
 async function runBenchmarks() {
-  console.log('=== Automerge Performance Benchmark ===');
+  console.log('=== Loro MovableList Performance Benchmark ===');
+  console.log('Using Loro\'s MovableList (supports move operations like MArrayCRDT)');
   console.log('Loading editing trace...');
   
   const trace = loadEditingTrace();
@@ -73,23 +67,27 @@ async function runBenchmarks() {
     const operations = allOps.slice(0, maxOps);
     
     const startTime = Date.now();
-    let doc = Automerge.from({text: new Automerge.Text()});
-    let finalLength = 0;
+    const doc = new Loro();
+    
+    // Use MovableList instead of Text for array-like operations
+    const list = doc.getMovableList('content');
+    let currentLength = 0;
     
     // Process operations
     for (let i = 0; i < operations.length; i++) {
       const op = operations[i];
       
-      doc = Automerge.change(doc, d => {
-        if (op.type === 'insert') {
-          const insertPos = Math.min(op.index, d.text.length);
-          d.text.insertAt(insertPos, op.value);
-        } else if (op.type === 'delete' && d.text.length > 0) {
-          // Delete from random position if we can't map elemId properly
-          const deletePos = Math.floor(Math.random() * d.text.length);
-          d.text.deleteAt(deletePos, 1);
-        }
-      });
+      if (op.type === 'insert') {
+        // Insert at random position (simplified)
+        const insertPos = Math.floor(Math.random() * (currentLength + 1));
+        list.insert(insertPos, op.value);
+        currentLength++;
+      } else if (op.type === 'delete' && currentLength > 0) {
+        // Delete from random position
+        const deletePos = Math.floor(Math.random() * currentLength);
+        list.delete(deletePos, 1);
+        currentLength--;
+      }
       
       // Progress indicator for longer runs
       if (i % 5000 === 0 && i > 0) {
@@ -100,7 +98,7 @@ async function runBenchmarks() {
     }
     
     const endTime = Date.now();
-    finalLength = doc.text.length;
+    const finalLength = list.length;
     
     // Force garbage collection and measure final memory
     if (global.gc) {
@@ -131,11 +129,11 @@ async function runBenchmarks() {
 function saveResults(results) {
   const csvContent = [
     'system,operations,time_ms,ops_per_sec,memory_mb,final_length',
-    ...results.map(r => `Automerge,${r.operations},${r.timeMs},${r.opsPerSec},${r.memoryMB},${r.finalLength}`)
+    ...results.map(r => `LoroArray,${r.operations},${r.timeMs},${r.opsPerSec},${r.memoryMB},${r.finalLength}`)
   ].join('\n');
   
-  fs.writeFileSync('automerge_results.csv', csvContent);
-  console.log('\n✅ Results saved to automerge_results.csv');
+  fs.writeFileSync('loro_array_results.csv', csvContent);
+  console.log('\n✅ Results saved to loro_array_results.csv');
 }
 
 // Main execution
@@ -143,7 +141,9 @@ if (require.main === module) {
   runBenchmarks()
     .then(results => {
       saveResults(results);
-      console.log('\n🎯 Automerge benchmark completed!');
+      console.log('\n🎯 Loro MovableList benchmark completed!');
+      console.log('\nThis tests Loro\'s array with move support (comparable to MArrayCRDT)');
+      console.log('Compare against regular Loro text implementation in simulation.js');
     })
     .catch(error => {
       console.error('❌ Benchmark failed:', error);

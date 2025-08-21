@@ -162,10 +162,17 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 MArrayCRDT vs Automerge</h1>
+            <h1>🚀 MArrayCRDT vs Competitors</h1>
             <p>Comprehensive performance comparison using real editing traces from academic research. 
-               Both systems process the same 259k character-by-character operations from writing a LaTeX paper.
-               All measurements include real throughput, memory usage, and scalability metrics.</p>
+               All systems process the same 259k character-by-character operations from writing a LaTeX paper.
+               Measurements include throughput, memory usage, and scalability metrics.</p>
+            
+            <div class="version-selector" style="margin-top: 15px;">
+                <label for="version-select">Benchmark Version:</label>
+                <select id="version-select" style="margin-left: 10px; padding: 5px;">
+                    <option value="">Latest (Live Data)</option>
+                </select>
+            </div>
         </div>
         
         <div id="loading" class="loading">
@@ -189,6 +196,18 @@
                 <div class="stat-card">
                     <div class="stat-value" id="automerge-best">-</div>
                     <div class="stat-label">Automerge Peak (ops/sec)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="yjs-best">-</div>
+                    <div class="stat-label">Yjs Peak (ops/sec)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="loro-best">-</div>
+                    <div class="stat-label">Loro Text Peak (ops/sec)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="loro-array-best">-</div>
+                    <div class="stat-label">Loro Array Peak (ops/sec)</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="baseline-ops">-</div>

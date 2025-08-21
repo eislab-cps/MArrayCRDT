@@ -7,7 +7,7 @@
     "benchmark": "node --expose-gc simulation.js"
   },
   "dependencies": {
-    "automerge": "latest"
+    "automerge": "^0.14.2"
   },
   "keywords": ["crdt", "automerge", "benchmark"],
   "author": "",

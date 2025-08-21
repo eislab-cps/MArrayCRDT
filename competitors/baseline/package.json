@@ -1,0 +1,12 @@
+{
+  "name": "baseline-kleppmann-benchmark",
+  "version": "1.0.0",
+  "description": "Baseline performance test using plain JavaScript Array",
+  "main": "simulation.js",
+  "scripts": {
+    "benchmark": "node --expose-gc simulation.js"
+  },
+  "keywords": ["baseline", "javascript", "array", "benchmark"],
+  "author": "",
+  "license": "MIT"
+}

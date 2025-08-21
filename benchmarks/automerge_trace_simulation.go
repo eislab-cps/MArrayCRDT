@@ -209,7 +209,7 @@ func (s *AutomergeTraceSimulator) SimulateAutomergeTrace() error {
 	s.metrics.MemoryOverhead = float64(actualBytesPerElement) / 1.0
 	
 	// Save metrics to file
-	if err := s.saveMetrics("marraycrdt_automerge_metrics.json"); err != nil {
+	if err := s.saveMetrics("../simulation/marraycrdt_automerge_metrics.json"); err != nil {
 		fmt.Printf("Warning: Failed to save metrics: %v\n", err)
 	}
 	

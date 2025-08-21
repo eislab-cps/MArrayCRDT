@@ -1,0 +1,1 @@
+system,operations,time_ms,ops_per_sec,memory_mb,final_length\nBaseline,1000,62,16129,0.01,964\nBaseline,5000,55,90909,0.03,3472\nBaseline,10000,59,169492,0.08,6980\nBaseline,20000,74,270270,-0.04,14302\nBaseline,30000,104,288462,-0.05,19252\nBaseline,40000,118,338983,-0.05,24700\nBaseline,50000,154,324675,-0.12,32800

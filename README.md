@@ -6,10 +6,11 @@ A high-performance CRDT implementation with comprehensive benchmarking against A
 
 ```
 ├── crdt/          # Core CRDT implementation (Go)
-├── benchmarks/    # Performance benchmarks and simulations (Go)  
-├── competitors/   # Competitor CRDT benchmarks (Node.js/JavaScript)
+├── benchmarks/    # Performance benchmarks and simulations (Go)
+├── simulation/    # MArrayCRDT simulation results (CSV/JSON)
+├── competitors/   # Competitor CRDT benchmarks (Node.js/JavaScript)  
 ├── web/           # Web-based visualization (Node.js/JavaScript)
-├── data/          # Benchmark data and results
+├── data/          # Input data and competitor results
 └── go.mod         # Go module definition
 ```
 
@@ -64,6 +65,11 @@ Then open http://localhost:3000 to view interactive performance charts.
 - `comprehensive_benchmark.go` - Multi-scale performance tests
 - `automerge_trace_simulation.go` - Real editing trace simulation
 
+### Simulation Results (`simulation/`)
+- `marraycrdt_results.csv` - MArrayCRDT performance results
+- `marraycrdt_comprehensive_benchmark.json` - Detailed benchmark data
+- `marraycrdt_automerge_metrics.json` - Trace simulation metrics
+
 ### Competitors (`competitors/`)
 - `automerge/` - Automerge CRDT benchmark
 - `yjs/` - Yjs CRDT benchmark  
@@ -77,7 +83,7 @@ Then open http://localhost:3000 to view interactive performance charts.
 
 ### Data (`data/`)
 - `paper.json` - Real editing trace (259k operations from writing a LaTeX paper)
-- `comprehensive_performance_comparison.csv` - Benchmark results
+- `competitors_comparison.csv` - Competitor benchmark results
 
 ## Key Features
 

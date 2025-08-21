@@ -4,7 +4,9 @@
   "description": "Loro performance test using Kleppmann editing trace",
   "main": "simulation.js",
   "scripts": {
-    "benchmark": "node --expose-gc simulation.js"
+    "benchmark": "node --expose-gc simulation.js",
+    "benchmark-array": "node --expose-gc array_simulation.js",
+    "benchmark-all": "npm run benchmark && npm run benchmark-array"
   },
   "dependencies": {
     "loro-crdt": "^1.0.7"

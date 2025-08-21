@@ -3,7 +3,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const COMPETITORS = ['automerge', 'yjs', 'loro'];
+const COMPETITORS = ['automerge', 'yjs', 'loro', 'baseline'];
 
 async function installDependencies() {
   console.log('🔧 Installing dependencies for all competitors...\n');
@@ -33,6 +33,7 @@ async function runBenchmarks() {
     console.log(`\n=== Running ${competitor.toUpperCase()} benchmark ===`);
     
     try {
+      // Run standard benchmark
       const output = execSync('node --expose-gc simulation.js', {
         cwd: path.join(__dirname, competitor),
         encoding: 'utf8'
@@ -46,6 +47,29 @@ async function runBenchmarks() {
         const csvContent = fs.readFileSync(resultsPath, 'utf8');
         const lines = csvContent.trim().split('\n').slice(1); // Skip header
         allResults.push(...lines);
+      }
+      
+      // Special case: Loro also has array benchmark
+      if (competitor === 'loro') {
+        console.log(`\n=== Running LORO ARRAY benchmark (MovableList) ===`);
+        try {
+          const arrayOutput = execSync('node --expose-gc array_simulation.js', {
+            cwd: path.join(__dirname, competitor),
+            encoding: 'utf8'
+          });
+          
+          console.log(arrayOutput);
+          
+          // Read the array results CSV
+          const arrayResultsPath = path.join(__dirname, competitor, 'loro_array_results.csv');
+          if (fs.existsSync(arrayResultsPath)) {
+            const csvContent = fs.readFileSync(arrayResultsPath, 'utf8');
+            const lines = csvContent.trim().split('\n').slice(1); // Skip header
+            allResults.push(...lines);
+          }
+        } catch (arrayError) {
+          console.error(`❌ Loro array benchmark failed:`, arrayError.message);
+        }
       }
       
     } catch (error) {

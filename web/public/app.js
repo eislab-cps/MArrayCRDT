@@ -3,35 +3,54 @@ class PerformanceVisualization {
     constructor() {
         this.data = null;
         this.charts = {};
+        this.currentVersion = '';
         this.init();
     }
     
     async init() {
         try {
+            await this.loadVersions();
             await this.loadData();
             this.updateStats();
             this.createCharts();
+            this.setupVersionSelector();
             this.showContent();
         } catch (error) {
             this.showError(error.message);
         }
     }
     
-    async loadData() {
-        const response = await fetch('/api/performance-data');
+    async loadVersions() {
+        try {
+            const response = await fetch('/api/versions');
+            if (response.ok) {
+                this.versions = await response.json();
+            } else {
+                this.versions = [];
+            }
+        } catch (error) {
+            console.warn('Failed to load versions:', error);
+            this.versions = [];
+        }
+    }
+    
+    async loadData(version = '') {
+        const url = version ? `/api/performance-data?version=${version}` : '/api/performance-data';
+        const response = await fetch(url);
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to load data');
         }
         this.data = await response.json();
+        this.currentVersion = version;
         console.log('Loaded performance data:', this.data);
     }
     
     updateStats() {
-        const { MArrayCRDT, Automerge, Yjs, Loro, Baseline } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, LoroArray, Baseline } = this.data;
         
         // Calculate stats from all available systems
-        const allSystems = [MArrayCRDT, Automerge, Yjs || [], Loro || [], Baseline];
+        const allSystems = [MArrayCRDT, Automerge, Yjs || [], Loro || [], LoroArray || [], Baseline];
         const maxOperations = Math.max(
             ...allSystems.flatMap(system => system.map(d => d.operations))
         );
@@ -40,12 +59,16 @@ class PerformanceVisualization {
         const automergeBest = Automerge.length > 0 ? Math.max(...Automerge.map(d => d.opsPerSec)) : 0;
         const yjsBest = Yjs && Yjs.length > 0 ? Math.max(...Yjs.map(d => d.opsPerSec)) : 0;
         const loroBest = Loro && Loro.length > 0 ? Math.max(...Loro.map(d => d.opsPerSec)) : 0;
+        const loroArrayBest = LoroArray && LoroArray.length > 0 ? Math.max(...LoroArray.map(d => d.opsPerSec)) : 0;
         const baselineOps = Baseline.length > 0 ? Baseline[0].opsPerSec : 0;
         
         // Update DOM
         document.getElementById('total-operations').textContent = maxOperations.toLocaleString();
         document.getElementById('marraycrdt-best').textContent = Math.round(marraycrdtBest).toLocaleString();
         document.getElementById('automerge-best').textContent = Math.round(automergeBest).toLocaleString();
+        document.getElementById('yjs-best').textContent = Math.round(yjsBest).toLocaleString();
+        document.getElementById('loro-best').textContent = Math.round(loroBest).toLocaleString();
+        document.getElementById('loro-array-best').textContent = Math.round(loroArrayBest).toLocaleString();
         document.getElementById('baseline-ops').textContent = Math.round(baselineOps).toLocaleString();
     }
     
@@ -57,7 +80,7 @@ class PerformanceVisualization {
     
     createThroughputChart() {
         const ctx = document.getElementById('throughputChart').getContext('2d');
-        const { MArrayCRDT, Automerge, Yjs, Loro, Baseline } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, LoroArray, Baseline } = this.data;
         
         // Color scheme for all competitors
         const colors = {
@@ -65,13 +88,14 @@ class PerformanceVisualization {
             Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.1)' },
             Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.1)' },
             Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.1)' },
+            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.1)' },
             Baseline: { border: '#2ecc71', bg: 'rgba(46, 204, 113, 0.1)' }
         };
         
         // Prepare datasets
         const datasets = [];
         
-        const systems = { MArrayCRDT, Automerge, Yjs, Loro };
+        const systems = { MArrayCRDT, Automerge, Yjs, Loro, LoroArray };
         
         Object.entries(systems).forEach(([name, data]) => {
             if (data && data.length > 0) {
@@ -160,33 +184,33 @@ class PerformanceVisualization {
     
     createMemoryChart() {
         const ctx = document.getElementById('memoryChart').getContext('2d');
-        const { MArrayCRDT, Automerge } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, LoroArray } = this.data;
+        
+        // Color scheme for memory chart (reuse from throughput)
+        const colors = {
+            MArrayCRDT: { border: '#e74c3c', bg: 'rgba(231, 76, 60, 0.2)' },
+            Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.2)' },
+            Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' },
+            Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.2)' },
+            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.2)' }
+        };
         
         const datasets = [];
+        const systems = { MArrayCRDT, Automerge, Yjs, Loro, LoroArray };
         
-        if (MArrayCRDT.length > 0) {
-            datasets.push({
-                label: 'MArrayCRDT',
-                data: MArrayCRDT.map(d => ({x: d.operations, y: d.memoryMb})),
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.2)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.2
-            });
-        }
-        
-        if (Automerge.length > 0) {
-            datasets.push({
-                label: 'Automerge',
-                data: Automerge.map(d => ({x: d.operations, y: d.memoryMb})),
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.2
-            });
-        }
+        Object.entries(systems).forEach(([name, data]) => {
+            if (data && data.length > 0) {
+                datasets.push({
+                    label: name,
+                    data: data.map(d => ({x: d.operations, y: d.memoryMb})),
+                    borderColor: colors[name].border,
+                    backgroundColor: colors[name].bg,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.2
+                });
+            }
+        });
         
         this.charts.memory = new Chart(ctx, {
             type: 'line',
@@ -338,6 +362,53 @@ class PerformanceVisualization {
     showContent() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('content').style.display = 'block';
+    }
+    
+    setupVersionSelector() {
+        const select = document.getElementById('version-select');
+        
+        // Clear existing options except "Latest"
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
+        }
+        
+        // Add version options
+        for (const version of this.versions) {
+            const option = document.createElement('option');
+            option.value = version.version;
+            option.textContent = `${version.version} (${new Date(version.created).toLocaleDateString()})`;
+            select.appendChild(option);
+        }
+        
+        // Set current selection
+        select.value = this.currentVersion;
+        
+        // Handle version changes
+        select.addEventListener('change', async (e) => {
+            const selectedVersion = e.target.value;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            try {
+                await this.loadData(selectedVersion);
+                this.updateStats();
+                this.destroyCharts();
+                this.createCharts();
+                this.showContent();
+            } catch (error) {
+                this.showError(error.message);
+            }
+        });
+    }
+    
+    destroyCharts() {
+        Object.values(this.charts).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') {
+                chart.destroy();
+            }
+        });
+        this.charts = {};
     }
     
     showError(message) {

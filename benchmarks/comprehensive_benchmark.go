@@ -163,7 +163,7 @@ func (s *ComprehensiveBenchmarkSuite) saveResults() error {
 		return fmt.Errorf("failed to marshal results: %v", err)
 	}
 	
-	if err := os.WriteFile("marraycrdt_comprehensive_benchmark.json", data, 0644); err != nil {
+	if err := os.WriteFile("../simulation/marraycrdt_comprehensive_benchmark.json", data, 0644); err != nil {
 		return fmt.Errorf("failed to write JSON results: %v", err)
 	}
 	
@@ -203,13 +203,13 @@ func (s *ComprehensiveBenchmarkSuite) saveResults() error {
 	csvData += fmt.Sprintf("Baseline,%d,%d,%.1f,%.2f,0,0,0\n",
 		259778, 2899, 89609.5, 0.1)
 	
-	if err := os.WriteFile("../data/comprehensive_performance_comparison.csv", []byte(csvData), 0644); err != nil {
+	if err := os.WriteFile("../simulation/marraycrdt_results.csv", []byte(csvData), 0644); err != nil {
 		return fmt.Errorf("failed to write CSV results: %v", err)
 	}
 	
 	fmt.Printf("\nResults saved to:\n")
-	fmt.Printf("  - marraycrdt_comprehensive_benchmark.json\n")
-	fmt.Printf("  - ../data/comprehensive_performance_comparison.csv\n")
+	fmt.Printf("  - ../simulation/marraycrdt_comprehensive_benchmark.json\n")
+	fmt.Printf("  - ../simulation/marraycrdt_results.csv\n")
 	
 	return nil
 }
