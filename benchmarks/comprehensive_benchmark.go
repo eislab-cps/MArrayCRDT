@@ -178,30 +178,7 @@ func (s *ComprehensiveBenchmarkSuite) saveResults() error {
 			result.FinalDocumentLength)
 	}
 	
-	// Add Automerge benchmark data for comparison
-	automergeData := []struct {
-		ops    int
-		timeMs int
-	}{
-		{1000, 157},
-		{5000, 530},
-		{10000, 1162},
-		{20000, 3513},
-		{30000, 8559},
-		{40000, 16081},
-		{50000, 25101},
-	}
-	
-	for _, am := range automergeData {
-		opsPerSec := float64(am.ops*1000) / float64(am.timeMs)
-		memoryMB := float64(am.ops) * 6.0 / 1024 // Estimate based on heap usage
-		csvData += fmt.Sprintf("Automerge,%d,%d,%.1f,%.2f,0,0,0\n",
-			am.ops, am.timeMs, opsPerSec, memoryMB)
-	}
-	
-	// Add baseline
-	csvData += fmt.Sprintf("Baseline,%d,%d,%.1f,%.2f,0,0,0\n",
-		259778, 2899, 89609.5, 0.1)
+	// Only include MArrayCRDT results - competitors are benchmarked separately
 	
 	if err := os.WriteFile("../simulation/marraycrdt_results.csv", []byte(csvData), 0644); err != nil {
 		return fmt.Errorf("failed to write CSV results: %v", err)

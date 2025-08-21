@@ -2,9 +2,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 1000,
-    "time_ms": 79.495971,
-    "ops_per_sec": 12579.25385929307,
-    "memory_mb": 1.1015625,
+    "time_ms": 105.964309,
+    "ops_per_sec": 9437.139820352153,
+    "memory_mb": 1.109375,
     "insert_operations": 981,
     "delete_operations": 18,
     "final_document_length": 971
@@ -12,9 +12,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 5000,
-    "time_ms": 1592.585125,
-    "ops_per_sec": 3139.549604923002,
-    "memory_mb": 5.265625,
+    "time_ms": 1923.63518,
+    "ops_per_sec": 2599.2454556793873,
+    "memory_mb": 5.203125,
     "insert_operations": 4235,
     "delete_operations": 764,
     "final_document_length": 3545
@@ -22,9 +22,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 10000,
-    "time_ms": 6417.817529,
-    "ops_per_sec": 1558.16209401612,
-    "memory_mb": 9.8515625,
+    "time_ms": 7290.991648,
+    "ops_per_sec": 1371.5555417956227,
+    "memory_mb": 9.828125,
     "insert_operations": 8489,
     "delete_operations": 1510,
     "final_document_length": 7115
@@ -32,9 +32,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 20000,
-    "time_ms": 28375.59829,
-    "ops_per_sec": 704.8309535396936,
-    "memory_mb": 18.8984375,
+    "time_ms": 34943.90052,
+    "ops_per_sec": 572.3459517220489,
+    "memory_mb": 18.8203125,
     "insert_operations": 17150,
     "delete_operations": 2849,
     "final_document_length": 14544
@@ -42,9 +42,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 30000,
-    "time_ms": 60910.407051,
-    "ops_per_sec": 492.52667076877583,
-    "memory_mb": 26.21875,
+    "time_ms": 68991.487604,
+    "ops_per_sec": 434.8362535997942,
+    "memory_mb": 26.0859375,
     "insert_operations": 24625,
     "delete_operations": 5374,
     "final_document_length": 19624
@@ -52,9 +52,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 40000,
-    "time_ms": 103216.671639,
-    "ops_per_sec": 387.5342942649796,
-    "memory_mb": 35.3515625,
+    "time_ms": 125108.119555,
+    "ops_per_sec": 319.72345314018736,
+    "memory_mb": 35.25,
     "insert_operations": 32349,
     "delete_operations": 7650,
     "final_document_length": 25249
@@ -62,9 +62,9 @@
   {
     "system": "MArrayCRDT",
     "operations": 50000,
-    "time_ms": 169693.234649,
-    "ops_per_sec": 294.64934240555857,
-    "memory_mb": 46.359375,
+    "time_ms": 201717.135734,
+    "ops_per_sec": 247.87185192800828,
+    "memory_mb": 46.234375,
     "insert_operations": 41399,
     "delete_operations": 8600,
     "final_document_length": 33505

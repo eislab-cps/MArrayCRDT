@@ -75,7 +75,6 @@ class PerformanceVisualization {
     createCharts() {
         this.createThroughputChart();
         this.createMemoryChart();
-        this.createRatioChart();
     }
     
     createThroughputChart() {
@@ -88,7 +87,7 @@ class PerformanceVisualization {
             Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.1)' },
             Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.1)' },
             Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.1)' },
-            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.1)' },
+            LoroArray: { border: '#e91e63', bg: 'rgba(233, 30, 99, 0.1)' }, // Changed to pink
             Baseline: { border: '#2ecc71', bg: 'rgba(46, 204, 113, 0.1)' }
         };
         
@@ -184,7 +183,7 @@ class PerformanceVisualization {
     
     createMemoryChart() {
         const ctx = document.getElementById('memoryChart').getContext('2d');
-        const { MArrayCRDT, Automerge, Yjs, Loro, LoroArray } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, LoroArray, Baseline } = this.data;
         
         // Color scheme for memory chart (reuse from throughput)
         const colors = {
@@ -192,11 +191,12 @@ class PerformanceVisualization {
             Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.2)' },
             Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' },
             Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.2)' },
-            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.2)' }
+            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.2)' },
+            Baseline: { border: '#2ecc71', bg: 'rgba(46, 204, 113, 0.2)' }
         };
         
         const datasets = [];
-        const systems = { MArrayCRDT, Automerge, Yjs, Loro, LoroArray };
+        const systems = { MArrayCRDT, Automerge, Yjs, Loro, LoroArray, Baseline };
         
         Object.entries(systems).forEach(([name, data]) => {
             if (data && data.length > 0) {
@@ -270,94 +270,6 @@ class PerformanceVisualization {
         });
     }
     
-    createRatioChart() {
-        const ctx = document.getElementById('ratioChart').getContext('2d');
-        const { MArrayCRDT, Automerge } = this.data;
-        
-        // Calculate performance ratios
-        const ratioData = [];
-        MArrayCRDT.forEach(mData => {
-            const automergeData = Automerge.find(a => a.operations === mData.operations);
-            if (automergeData) {
-                const ratio = mData.opsPerSec / automergeData.opsPerSec;
-                ratioData.push({
-                    x: mData.operations,
-                    y: ratio,
-                    marraycrdt: mData.opsPerSec,
-                    automerge: automergeData.opsPerSec
-                });
-            }
-        });
-        
-        this.charts.ratio = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                datasets: [{
-                    label: 'Performance Ratio (MArrayCRDT / Automerge)',
-                    data: ratioData,
-                    backgroundColor: ratioData.map(d => d.y >= 1 ? 'rgba(46, 204, 113, 0.8)' : 'rgba(231, 76, 60, 0.8)'),
-                    borderColor: ratioData.map(d => d.y >= 1 ? '#27ae60' : '#c0392b'),
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'bottom',
-                        title: {
-                            display: true,
-                            text: 'Operations',
-                            font: { size: 14, weight: 'bold' }
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return (value / 1000) + 'k';
-                            }
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Ratio (>1 = MArrayCRDT faster)',
-                            font: { size: 14, weight: 'bold' }
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value.toFixed(2) + 'x';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                return context[0].parsed.x.toLocaleString() + ' operations';
-                            },
-                            label: function(context) {
-                                const data = context.raw;
-                                return [
-                                    `Ratio: ${data.y.toFixed(2)}x`,
-                                    `MArrayCRDT: ${Math.round(data.marraycrdt).toLocaleString()} ops/sec`,
-                                    `Automerge: ${Math.round(data.automerge).toLocaleString()} ops/sec`
-                                ];
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
     
     showContent() {
         document.getElementById('loading').style.display = 'none';

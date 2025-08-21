@@ -1,0 +1,32 @@
+[
+  {
+    "version": "isolated-2025-08-21T09-56-56",
+    "path": "data/benchmark_runs/isolated-2025-08-21T09-56-56",
+    "created": "2025-08-21T09:56:56.849Z",
+    "method": "process_isolated",
+    "fileCount": 6,
+    "description": "Process-isolated benchmarks with reliable measurements"
+  },
+  {
+    "version": "isolated-2025-08-21T09-56-36",
+    "path": "data/benchmark_runs/isolated-2025-08-21T09-56-36",
+    "created": "2025-08-21T09:56:36.196Z",
+    "method": "process_isolated",
+    "fileCount": 6,
+    "description": "Process-isolated benchmarks with reliable measurements"
+  },
+  {
+    "version": "2025-08-21T09-32-30",
+    "path": "data/benchmark_runs/2025-08-21T09-32-30",
+    "created": "2025-08-21T09:36:37.112Z",
+    "fileCount": 8,
+    "summary": {}
+  },
+  {
+    "version": "2025-08-21T09-19-29",
+    "path": "data/benchmark_runs/2025-08-21T09-19-29",
+    "created": "2025-08-21T09:25:09.491Z",
+    "fileCount": 8,
+    "summary": {}
+  }
+]
