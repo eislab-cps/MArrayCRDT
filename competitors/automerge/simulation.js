@@ -3,6 +3,9 @@ const Automerge = require('automerge');
 const fs = require('fs');
 const path = require('path');
 
+// Load data from root data directory
+const DATA_PATH = path.join(__dirname, '../../data/paper.json');
+
 
 // Reliable memory estimation for Automerge
 function estimateAutomergeMemory(doc, operationCount, finalLength) {
@@ -26,7 +29,7 @@ function estimateAutomergeMemory(doc, operationCount, finalLength) {
 
 // Load the editing trace data
 function loadEditingTrace() {
-  const tracePath = path.join(__dirname, '../../data/paper.json');
+  const tracePath = DATA_PATH;
   const fileContent = fs.readFileSync(tracePath, 'utf8');
   const lines = fileContent.trim().split('\n');
   return lines.map(line => JSON.parse(line));

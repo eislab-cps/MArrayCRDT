@@ -10,10 +10,12 @@ class PerformanceVisualization {
     async init() {
         try {
             await this.loadVersions();
-            await this.loadData();
+            this.setupVersionSelector();
+            // Load the first available version instead of latest
+            const firstVersion = this.versions.length > 0 ? this.versions[0].version : '';
+            await this.loadData(firstVersion);
             this.updateStats();
             this.createCharts();
-            this.setupVersionSelector();
             this.showContent();
         } catch (error) {
             this.showError(error.message);
@@ -191,7 +193,7 @@ class PerformanceVisualization {
             Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.2)' },
             Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.2)' },
             Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.2)' },
-            LoroArray: { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.2)' },
+            LoroArray: { border: '#e91e63', bg: 'rgba(233, 30, 99, 0.2)' },
             Baseline: { border: '#2ecc71', bg: 'rgba(46, 204, 113, 0.2)' }
         };
         
@@ -279,21 +281,34 @@ class PerformanceVisualization {
     setupVersionSelector() {
         const select = document.getElementById('version-select');
         
-        // Clear existing options except "Latest"
-        while (select.children.length > 1) {
-            select.removeChild(select.lastChild);
-        }
+        // Clear all existing options
+        select.innerHTML = '';
         
-        // Add version options
+        // Add version options (most recent first, with clearer timestamps)
         for (const version of this.versions) {
             const option = document.createElement('option');
             option.value = version.version;
-            option.textContent = `${version.version} (${new Date(version.created).toLocaleDateString()})`;
+            
+            // Format timestamp more clearly
+            const date = new Date(version.created);
+            const timeStr = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric', 
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Create user-friendly name
+            const isIsolated = version.version.startsWith('isolated-');
+            const typeLabel = isIsolated ? 'Isolated' : 'Standard';
+            option.textContent = `${timeStr} - ${typeLabel} Benchmark`;
             select.appendChild(option);
         }
         
-        // Set current selection
-        select.value = this.currentVersion;
+        // Set current selection to first version
+        if (this.versions.length > 0) {
+            select.value = this.currentVersion || this.versions[0].version;
+        }
         
         // Handle version changes
         select.addEventListener('change', async (e) => {

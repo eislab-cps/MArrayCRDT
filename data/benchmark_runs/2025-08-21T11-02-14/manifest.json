@@ -1,0 +1,43 @@
+{
+  "version": "2025-08-21T11-02-14",
+  "created": "2025-08-21T11:06:49.791Z",
+  "method": "process_isolated",
+  "files": [
+    {
+      "name": "marraycrdt_results.csv",
+      "size": 446,
+      "originalPath": "simulation/marraycrdt_results.csv"
+    },
+    {
+      "name": "marraycrdt_detailed.json",
+      "size": 1774,
+      "originalPath": "simulation/marraycrdt_comprehensive_benchmark.json"
+    },
+    {
+      "name": "automerge_results.csv",
+      "size": 314,
+      "originalPath": "competitors/automerge/automerge_results.csv"
+    },
+    {
+      "name": "yjs_results.csv",
+      "size": 285,
+      "originalPath": "competitors/yjs/yjs_results.csv"
+    },
+    {
+      "name": "loro_results.csv",
+      "size": 290,
+      "originalPath": "competitors/loro/loro_results.csv"
+    },
+    {
+      "name": "loro_array_results.csv",
+      "size": 326,
+      "originalPath": "competitors/loro/loro_array_results.csv"
+    },
+    {
+      "name": "baseline_results.csv",
+      "size": 307,
+      "originalPath": "competitors/baseline/baseline_results.csv"
+    }
+  ],
+  "summary": {}
+}

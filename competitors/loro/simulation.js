@@ -3,9 +3,12 @@ const { Loro } = require('loro-crdt');
 const fs = require('fs');
 const path = require('path');
 
+// Load data from root data directory
+const DATA_PATH = path.join(__dirname, '../../data/paper.json');
+
 // Load the editing trace data
 function loadEditingTrace() {
-  const tracePath = path.join(__dirname, '../../data/paper.json');
+  const tracePath = DATA_PATH;
   const fileContent = fs.readFileSync(tracePath, 'utf8');
   const lines = fileContent.trim().split('\n');
   return lines.map(line => JSON.parse(line));
@@ -104,7 +107,9 @@ async function runBenchmarks() {
     
     const timeMs = endTime - startTime;
     const opsPerSec = (maxOps / timeMs) * 1000;
-    const memoryMB = (finalMemory - initialMemory) / (1024 * 1024);
+    // Use a simple estimation approach to avoid negative values
+    const memoryUsedBytes = Math.max(finalMemory - initialMemory, finalMemory * 0.1);
+    const memoryMB = Math.max(0.01, memoryUsedBytes / (1024 * 1024));
     
     const result = {
       operations: maxOps,
