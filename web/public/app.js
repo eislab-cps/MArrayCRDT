@@ -28,17 +28,18 @@ class PerformanceVisualization {
     }
     
     updateStats() {
-        const { MArrayCRDT, Automerge, Baseline } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, Baseline } = this.data;
         
-        // Calculate stats
+        // Calculate stats from all available systems
+        const allSystems = [MArrayCRDT, Automerge, Yjs || [], Loro || [], Baseline];
         const maxOperations = Math.max(
-            ...MArrayCRDT.map(d => d.operations),
-            ...Automerge.map(d => d.operations),
-            ...Baseline.map(d => d.operations)
+            ...allSystems.flatMap(system => system.map(d => d.operations))
         );
         
-        const marraycrdtBest = Math.max(...MArrayCRDT.map(d => d.opsPerSec));
-        const automergeBest = Math.max(...Automerge.map(d => d.opsPerSec));
+        const marraycrdtBest = MArrayCRDT.length > 0 ? Math.max(...MArrayCRDT.map(d => d.opsPerSec)) : 0;
+        const automergeBest = Automerge.length > 0 ? Math.max(...Automerge.map(d => d.opsPerSec)) : 0;
+        const yjsBest = Yjs && Yjs.length > 0 ? Math.max(...Yjs.map(d => d.opsPerSec)) : 0;
+        const loroBest = Loro && Loro.length > 0 ? Math.max(...Loro.map(d => d.opsPerSec)) : 0;
         const baselineOps = Baseline.length > 0 ? Baseline[0].opsPerSec : 0;
         
         // Update DOM
@@ -56,34 +57,35 @@ class PerformanceVisualization {
     
     createThroughputChart() {
         const ctx = document.getElementById('throughputChart').getContext('2d');
-        const { MArrayCRDT, Automerge, Baseline } = this.data;
+        const { MArrayCRDT, Automerge, Yjs, Loro, Baseline } = this.data;
+        
+        // Color scheme for all competitors
+        const colors = {
+            MArrayCRDT: { border: '#e74c3c', bg: 'rgba(231, 76, 60, 0.1)' },
+            Automerge: { border: '#3498db', bg: 'rgba(52, 152, 219, 0.1)' },
+            Yjs: { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.1)' },
+            Loro: { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.1)' },
+            Baseline: { border: '#2ecc71', bg: 'rgba(46, 204, 113, 0.1)' }
+        };
         
         // Prepare datasets
         const datasets = [];
         
-        if (MArrayCRDT.length > 0) {
-            datasets.push({
-                label: 'MArrayCRDT',
-                data: MArrayCRDT.map(d => ({x: d.operations, y: d.opsPerSec})),
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.2
-            });
-        }
+        const systems = { MArrayCRDT, Automerge, Yjs, Loro };
         
-        if (Automerge.length > 0) {
-            datasets.push({
-                label: 'Automerge',
-                data: Automerge.map(d => ({x: d.operations, y: d.opsPerSec})),
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                borderWidth: 3,
-                fill: false,
-                tension: 0.2
-            });
-        }
+        Object.entries(systems).forEach(([name, data]) => {
+            if (data && data.length > 0) {
+                datasets.push({
+                    label: name,
+                    data: data.map(d => ({x: d.operations, y: d.opsPerSec})),
+                    borderColor: colors[name].border,
+                    backgroundColor: colors[name].bg,
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.2
+                });
+            }
+        });
         
         if (Baseline.length > 0) {
             datasets.push({

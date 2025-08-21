@@ -1,0 +1,15 @@
+{
+  "name": "loro-kleppmann-benchmark",
+  "version": "1.0.0",
+  "description": "Loro performance test using Kleppmann editing trace",
+  "main": "simulation.js",
+  "scripts": {
+    "benchmark": "node --expose-gc simulation.js"
+  },
+  "dependencies": {
+    "loro-crdt": "^1.0.7"
+  },
+  "keywords": ["crdt", "loro", "benchmark"],
+  "author": "",
+  "license": "MIT"
+}

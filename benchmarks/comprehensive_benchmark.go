@@ -1,4 +1,4 @@
-package marraycrdt
+package main
 
 import (
 	"encoding/json"
@@ -56,7 +56,7 @@ func (s *ComprehensiveBenchmarkSuite) runOptimizedBenchmark() error {
 	simulator := NewAutomergeTraceSimulator()
 	
 	// Load the full trace once
-	if err := simulator.LoadTrace("paper.json"); err != nil {
+	if err := simulator.LoadTrace("../data/paper.json"); err != nil {
 		return fmt.Errorf("failed to load trace: %v", err)
 	}
 	
@@ -203,13 +203,13 @@ func (s *ComprehensiveBenchmarkSuite) saveResults() error {
 	csvData += fmt.Sprintf("Baseline,%d,%d,%.1f,%.2f,0,0,0\n",
 		259778, 2899, 89609.5, 0.1)
 	
-	if err := os.WriteFile("comprehensive_performance_comparison.csv", []byte(csvData), 0644); err != nil {
+	if err := os.WriteFile("../data/comprehensive_performance_comparison.csv", []byte(csvData), 0644); err != nil {
 		return fmt.Errorf("failed to write CSV results: %v", err)
 	}
 	
 	fmt.Printf("\nResults saved to:\n")
 	fmt.Printf("  - marraycrdt_comprehensive_benchmark.json\n")
-	fmt.Printf("  - comprehensive_performance_comparison.csv\n")
+	fmt.Printf("  - ../data/comprehensive_performance_comparison.csv\n")
 	
 	return nil
 }

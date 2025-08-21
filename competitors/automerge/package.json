@@ -1,0 +1,15 @@
+{
+  "name": "automerge-kleppmann-benchmark",
+  "version": "1.0.0",
+  "description": "Automerge performance test using Kleppmann editing trace",
+  "main": "simulation.js",
+  "scripts": {
+    "benchmark": "node --expose-gc simulation.js"
+  },
+  "dependencies": {
+    "automerge": "latest"
+  },
+  "keywords": ["crdt", "automerge", "benchmark"],
+  "author": "",
+  "license": "MIT"
+}

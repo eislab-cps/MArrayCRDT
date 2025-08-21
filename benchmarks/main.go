@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"strings"
-	"github.com/caslun/MArrayCRDT/marraycrdt"
 )
 
 func main() {
@@ -15,7 +14,7 @@ func main() {
 	fmt.Println("• Comparing against real Automerge benchmark results")
 	fmt.Println()
 	fmt.Println("Expected runtime: 10-15 minutes")
-	fmt.Println("Results will be saved to comprehensive_performance_comparison.csv")
+	fmt.Println("Results will be saved to ../data/comprehensive_performance_comparison.csv")
 	fmt.Println()
 	
 	fmt.Println(strings.Repeat("=", 70))
@@ -23,7 +22,7 @@ func main() {
 	
 	// Run the comprehensive benchmark suite
 	fmt.Println("🚀 Starting comprehensive benchmark suite...")
-	if err := marraycrdt.RunComprehensiveBenchmarks(); err != nil {
+	if err := RunComprehensiveBenchmarks(); err != nil {
 		fmt.Printf("❌ ERROR: %v\n", err)
 		return
 	}
@@ -34,7 +33,7 @@ func main() {
 	fmt.Println("✅ Comprehensive comparison completed!")
 	fmt.Println()
 	fmt.Println("📊 Generated files:")
-	fmt.Println("  • comprehensive_performance_comparison.csv - For plotting and analysis")
+	fmt.Println("  • ../data/comprehensive_performance_comparison.csv - For plotting and analysis")
 	fmt.Println("  • marraycrdt_comprehensive_benchmark.json - Detailed MArrayCRDT results")
 	fmt.Println()
 	fmt.Println("📈 The CSV contains performance data for:")

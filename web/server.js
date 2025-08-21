@@ -13,9 +13,10 @@ app.use('/data', express.static('../'));
 // API endpoint to get performance data
 app.get('/api/performance-data', async (req, res) => {
   try {
-    const csvFilePath = path.join(__dirname, '../comprehensive_performance_comparison.csv');
+    const csvFilePath = path.join(__dirname, '../data/comprehensive_performance_comparison.csv');
+    const competitorsPath = path.join(__dirname, '../data/competitors_comparison.csv');
     
-    // Check if the comprehensive data exists, otherwise use the smaller comparison
+    // Check if the comprehensive data exists
     let dataFile = csvFilePath;
     if (!fs.existsSync(csvFilePath)) {
       dataFile = path.join(__dirname, '../performance_comparison.csv');
@@ -29,15 +30,24 @@ app.get('/api/performance-data', async (req, res) => {
     
     const jsonData = await csv2json().fromFile(dataFile);
     
+    // Load competitor data if available
+    let competitorData = [];
+    if (fs.existsSync(competitorsPath)) {
+      competitorData = await csv2json().fromFile(competitorsPath);
+    }
+    
     // Process and group the data
     const systems = {
       MArrayCRDT: [],
       Automerge: [],
+      Yjs: [],
+      Loro: [],
       Baseline: []
     };
     
+    // Process main data
     jsonData.forEach(row => {
-      if (systems[row.system]) {
+      if (systems[row.system] !== undefined) {
         systems[row.system].push({
           operations: parseInt(row.operations),
           timeMs: parseFloat(row.time_ms),
@@ -45,6 +55,21 @@ app.get('/api/performance-data', async (req, res) => {
           memoryMb: parseFloat(row.memory_mb),
           insertOps: parseInt(row.insert_ops) || 0,
           deleteOps: parseInt(row.delete_ops) || 0,
+          finalLength: parseInt(row.final_length) || 0
+        });
+      }
+    });
+    
+    // Process competitor data
+    competitorData.forEach(row => {
+      if (systems[row.system] !== undefined) {
+        systems[row.system].push({
+          operations: parseInt(row.operations),
+          timeMs: parseFloat(row.time_ms),
+          opsPerSec: parseFloat(row.ops_per_sec),
+          memoryMb: parseFloat(row.memory_mb),
+          insertOps: 0,
+          deleteOps: 0,
           finalLength: parseInt(row.final_length) || 0
         });
       }

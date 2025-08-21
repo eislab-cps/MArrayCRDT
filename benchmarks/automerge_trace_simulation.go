@@ -1,4 +1,4 @@
-package marraycrdt
+package main
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"github.com/caslun/MArrayCRDT/crdt"
 )
 
 // AutomergeOperation represents a single operation from the automerge trace
@@ -62,7 +63,7 @@ type ProgressiveMetric struct {
 
 // AutomergeTraceSimulator replays the exact automerge editing session
 type AutomergeTraceSimulator struct {
-	crdt         *MArrayCRDT[string]
+	crdt         *marraycrdt.MArrayCRDT[string]
 	idToIndex    map[string]string  // maps automerge elemId to our element ID
 	indexToId    map[string]string  // maps our element ID back to automerge elemId
 	Operations   []AutomergeOperation `json:"operations"` // Exported for external access
@@ -73,7 +74,7 @@ type AutomergeTraceSimulator struct {
 // NewAutomergeTraceSimulator creates a new simulator
 func NewAutomergeTraceSimulator() *AutomergeTraceSimulator {
 	return &AutomergeTraceSimulator{
-		crdt:      New[string]("automerge-simulation"),
+		crdt:      marraycrdt.New[string]("automerge-simulation"),
 		idToIndex: make(map[string]string),
 		indexToId: make(map[string]string),
 	}
@@ -311,7 +312,7 @@ func (s *AutomergeTraceSimulator) findInsertPosition(elemId string) int {
 func SimulateAutomergeTraceFromFile() {
 	simulator := NewAutomergeTraceSimulator()
 	
-	if err := simulator.LoadTrace("paper.json"); err != nil {
+	if err := simulator.LoadTrace("../data/paper.json"); err != nil {
 		fmt.Printf("ERROR: Failed to load trace: %v\n", err)
 		return
 	}
@@ -326,7 +327,7 @@ func SimulateAutomergeTraceFromFile() {
 func SimulateAutomergeTraceSubset(maxOps int) {
 	simulator := NewAutomergeTraceSimulator()
 	
-	if err := simulator.LoadTrace("paper.json"); err != nil {
+	if err := simulator.LoadTrace("../data/paper.json"); err != nil {
 		fmt.Printf("ERROR: Failed to load trace: %v\n", err)
 		return
 	}
