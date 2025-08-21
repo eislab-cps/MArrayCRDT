@@ -775,17 +775,20 @@ func (ma *MArrayCRDT[T]) Swap(id1, id2 string) bool {
 	}
 
 	ma.clock.Increment(ma.siteID)
-	clock := ma.clock.Fork()
-	clock.Increment(ma.siteID)
 
 	// Swap positions
 	elem1.Index.Position, elem2.Index.Position = elem2.Index.Position, elem1.Index.Position
 
-	elem1.Index.VectorClock = clock.Clone()
-	elem2.Index.VectorClock = clock.Clone()
-
-	elem1.VectorClock.Merge(clock)
-	elem2.VectorClock.Merge(clock)
+	// Give each element a unique clock
+	elem1.Index.VectorClock = ma.clock.Fork()
+	elem1.Index.VectorClock.Increment(ma.siteID)
+	elem1.VectorClock.Merge(elem1.Index.VectorClock)
+	
+	ma.clock.Increment(ma.siteID)
+	
+	elem2.Index.VectorClock = ma.clock.Fork()
+	elem2.Index.VectorClock.Increment(ma.siteID)
+	elem2.VectorClock.Merge(elem2.Index.VectorClock)
 
 	ma.invalidateCache()
 	return true

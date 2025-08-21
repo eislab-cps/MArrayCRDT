@@ -32,7 +32,7 @@ test: ## Run all tests
 
 test-verbose: ## Run all tests with verbose output
 	@echo "$(BLUE)Running all tests (verbose)...$(NC)"
-	@go test -v ./marraycrdt
+	@go test -v ./marraycrdt 2>&1 | grep "^---"
 
 test-race: ## Run tests with race detector
 	@echo "$(BLUE)Running tests with race detector...$(NC)"

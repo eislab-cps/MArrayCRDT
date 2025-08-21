@@ -668,29 +668,53 @@ func TestExtremeStressTest(t *testing.T) {
 	}
 
 	fmt.Printf("\n=== Starting final merge rounds ===\n")
-	// Final merge
-	for round := 0; round < 3; round++ {
+	// Final merge - do complete pairwise merges
+	for round := 0; round < 5; round++ {
 		fmt.Printf("\nFinal merge round %d:\n", round+1)
+		
+		// Full pairwise merge - each replica merges with all others
 		replica1.Merge(replica2)
-		fmt.Printf("  After R1.Merge(R2): R1=%v\n", replica1.ToSlice())
-		
-		replica2.Merge(replica3)
-		fmt.Printf("  After R2.Merge(R3): R2=%v\n", replica2.ToSlice())
-		
-		replica3.Merge(replica1)
-		fmt.Printf("  After R3.Merge(R1): R3=%v\n", replica3.ToSlice())
-		
 		replica1.Merge(replica3)
-		fmt.Printf("  After R1.Merge(R3): R1=%v\n", replica1.ToSlice())
+		fmt.Printf("  R1 after merging R2&R3: %v\n", replica1.ToSlice())
 		
 		replica2.Merge(replica1)
-		fmt.Printf("  After R2.Merge(R1): R2=%v\n", replica2.ToSlice())
+		replica2.Merge(replica3)
+		fmt.Printf("  R2 after merging R1&R3: %v\n", replica2.ToSlice())
+		
+		replica3.Merge(replica1)
+		replica3.Merge(replica2)
+		fmt.Printf("  R3 after merging R1&R2: %v\n", replica3.ToSlice())
 	}
 
 	fmt.Printf("\n=== Final states ===\n")
 	fmt.Printf("Replica1: %v\n", replica1.ToSlice())
 	fmt.Printf("Replica2: %v\n", replica2.ToSlice())
 	fmt.Printf("Replica3: %v\n", replica3.ToSlice())
+	
+	// Debug specific elements
+	fmt.Printf("\n=== Debugging specific element positions ===\n")
+	for i, id := range ids[:3] {
+		elem1, _ := replica1.GetElement(id)
+		elem2, _ := replica2.GetElement(id)
+		elem3, _ := replica3.GetElement(id)
+		
+		fmt.Printf("Element %d (ID %s):\n", i, id[:8])
+		if elem1 != nil {
+			fmt.Printf("  R1: value=%v, pos=%.2f\n", elem1.Value.Data, elem1.Index.Position)
+		} else {
+			fmt.Printf("  R1: deleted or missing\n")
+		}
+		if elem2 != nil {
+			fmt.Printf("  R2: value=%v, pos=%.2f\n", elem2.Value.Data, elem2.Index.Position)
+		} else {
+			fmt.Printf("  R2: deleted or missing\n")
+		}
+		if elem3 != nil {
+			fmt.Printf("  R3: value=%v, pos=%.2f\n", elem3.Value.Data, elem3.Index.Position)
+		} else {
+			fmt.Printf("  R3: deleted or missing\n")
+		}
+	}
 
 	if !reflect.DeepEqual(replica1.ToSlice(), replica2.ToSlice()) {
 		fmt.Printf("\nERROR: Replica1 and Replica2 differ!\n")
