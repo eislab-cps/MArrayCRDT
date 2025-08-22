@@ -1,5 +1,21 @@
 [
   {
+    "version": "2025-08-22T07-17-19",
+    "path": "data/benchmark_runs/2025-08-22T07-17-19",
+    "created": "2025-08-22T05:22:35.448Z",
+    "method": "bash_isolated",
+    "fileCount": 7,
+    "description": "Bash-orchestrated isolated benchmarks"
+  },
+  {
+    "version": "2025-08-22T06-59-06",
+    "path": "data/benchmark_runs/2025-08-22T06-59-06",
+    "created": "2025-08-22T05:02:53.443Z",
+    "method": "bash_isolated",
+    "fileCount": 7,
+    "description": "Bash-orchestrated isolated benchmarks"
+  },
+  {
     "version": "2025-08-21T15-45-22",
     "path": "data/benchmark_runs/2025-08-21T15-45-22",
     "created": "2025-08-21T13:48:40.598Z",

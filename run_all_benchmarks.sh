@@ -83,11 +83,23 @@ else
 fi
 cd ..
 
-# 2. Run all Node.js competitors in isolation
+# 2. Run all Node.js competitors in isolation with cooldown between runs
 run_competitor "Automerge" "competitors/automerge" "simulation.js" "automerge_results.csv"
+echo -e "${BLUE}⏳ Cooling down for 30 seconds to reset Node.js state...${NC}"
+sleep 30
+
 run_competitor "Yjs" "competitors/yjs" "simulation.js" "yjs_results.csv"
+echo -e "${BLUE}⏳ Cooling down for 30 seconds to reset Node.js state...${NC}"
+sleep 30
+
 run_competitor "Loro (Text)" "competitors/loro" "simulation.js" "loro_results.csv"
+echo -e "${BLUE}⏳ Cooling down for 30 seconds to reset Node.js state...${NC}"
+sleep 30
+
 run_competitor "Loro (Array)" "competitors/loro" "array_simulation.js" "loro_array_results.csv"
+echo -e "${BLUE}⏳ Cooling down for 30 seconds to reset Node.js state...${NC}"
+sleep 30
+
 run_competitor "Baseline" "competitors/baseline" "simulation.js" "baseline_results.csv"
 
 # 3. Create consolidated competitor results
