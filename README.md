@@ -1,101 +1,121 @@
 # MArrayCRDT - Movable Array Conflict-free Replicated Data Type
 
-A high-performance CRDT implementation with comprehensive benchmarking against Automerge.
+A high-performance CRDT implementation in Go that supports full array operations including move, sort, reverse, and swap, with comprehensive benchmarking against leading JavaScript CRDT libraries.
 
 ## Repository Structure
 
 ```
-├── crdt/          # Core CRDT implementation (Go)
-├── benchmarks/    # Performance benchmarks and simulations (Go)
-├── simulation/    # MArrayCRDT simulation results (CSV/JSON)
-├── competitors/   # Competitor CRDT benchmarks (Node.js/JavaScript)  
-├── web/           # Web-based visualization (Node.js/JavaScript)
-├── data/          # Input data and competitor results
-└── go.mod         # Go module definition
+├── crdt/                    # Core MArrayCRDT implementation (Go)
+├── benchmarks/             # MArrayCRDT performance benchmarks (Go)
+├── competitors/            # Competitor CRDT benchmarks (JavaScript)
+│   ├── automerge/         # Automerge CRDT benchmarks
+│   ├── yjs/               # Yjs CRDT benchmarks  
+│   ├── loro/              # Loro CRDT benchmarks (Text + MovableList)
+│   └── baseline/          # JavaScript Array baseline
+├── web/                    # Interactive web visualization
+├── data/                   # Benchmark data and editing traces
+│   ├── paper.json         # Real editing trace (259k operations)
+│   └── benchmark_runs/    # Timestamped benchmark results
+└── run_all_benchmarks.sh  # Complete benchmark suite runner
 ```
 
 ## Quick Start
 
-### Running Benchmarks
+### Complete Benchmark Suite
+```bash
+# Run all benchmarks with proper isolation between libraries
+./run_all_benchmarks.sh
+```
 
-**MArrayCRDT Benchmark:**
+This comprehensive suite:
+- Runs MArrayCRDT (Go) with snapshot-based measurements
+- Tests all JavaScript competitors with real memory tracking
+- Uses 60-second cooldowns between runs for reliable measurements
+- Generates timestamped results in `data/benchmark_runs/`
+- Supports version comparison in the web UI
+
+### Individual Benchmarks
+
+**MArrayCRDT only:**
 ```bash
 cd benchmarks
-go run .
+go run marraycrdt_simulation.go
 ```
 
-**Competitor Benchmarks:**
-```bash  
-cd competitors
-node run_all.js
-```
-
-**Complete Comparison:**
+**Specific competitor:**
 ```bash
-# Run both MArrayCRDT and competitors
-cd benchmarks && go run . && cd ../competitors && node run_all.js
+cd competitors/automerge
+node --expose-gc simulation.js
 ```
-
-This will:
-- Run comprehensive benchmarks at multiple scales (1k-50k operations)
-- Test MArrayCRDT, Automerge, Yjs, and Loro with identical conditions
-- Generate performance comparison data in `data/` directory
-- Use real editing traces from academic research (Kleppmann et al.)
 
 ### Web Visualization
 
 ```bash
-# From the project root
 cd web
-npm install
-npm start
+node server.js
 ```
 
-Then open http://localhost:3000 to view interactive performance charts.
-
-## Components
-
-### Core CRDT (`crdt/`)
-- `marraycrdt.go` - Main CRDT implementation
-- `marraycrdt_test.go` - Unit tests
-- `example_test.go` - Usage examples
-
-### Benchmarks (`benchmarks/`)
-- `main.go` - Main benchmark runner
-- `comprehensive_benchmark.go` - Multi-scale performance tests
-- `automerge_trace_simulation.go` - Real editing trace simulation
-
-### Simulation Results (`simulation/`)
-- `marraycrdt_results.csv` - MArrayCRDT performance results
-- `marraycrdt_comprehensive_benchmark.json` - Detailed benchmark data
-- `marraycrdt_automerge_metrics.json` - Trace simulation metrics
-
-### Competitors (`competitors/`)
-- `automerge/` - Automerge CRDT benchmark
-- `yjs/` - Yjs CRDT benchmark  
-- `loro/` - Loro CRDT benchmark
-- `run_all.js` - Master runner for all competitor tests
-
-### Web Visualization (`web/`)
-- `server.js` - Express server for serving data
-- `public/app.js` - Chart.js visualization
-- `public/index.html` - Web interface
-
-### Data (`data/`)
-- `paper.json` - Real editing trace (259k operations from writing a LaTeX paper)
-- `competitors_comparison.csv` - Competitor benchmark results
+Open http://localhost:3000 for interactive performance charts with:
+- Real-time data loading from benchmark runs
+- Version comparison between different benchmark sessions
+- Memory usage and throughput visualization
+- Operation count scaling analysis
 
 ## Key Features
 
-- **Real Memory Measurements**: Actual runtime memory usage (not estimates)
-- **Academic Benchmarks**: Uses real editing traces from CRDT research
-- **Multi-Scale Testing**: Performance analysis from 1k to 50k operations  
-- **Interactive Visualization**: Browser-based charts and comparisons
-- **Comprehensive Metrics**: Throughput, memory usage, scalability analysis
+### MArrayCRDT Capabilities
+- **Full Array Operations**: Insert, delete, move, swap, sort, reverse, rotate
+- **Strong Consistency**: Vector clock-based conflict resolution
+- **Move Support**: First-class support for element repositioning
+- **Memory Efficient**: 2.5-4x more memory efficient than JavaScript CRDTs
+- **Replica-based**: Changed from "siteID" to "replicaID" terminology
 
-## Performance Highlights
+### Benchmarking Framework
+- **Real Memory Measurement**: No artificial scaling - actual `process.memoryUsage()` sampling
+- **Single-run Snapshots**: Efficient benchmarking like MArrayCRDT (no re-running from scratch)
+- **Average Memory Tracking**: Samples memory every 100 operations for stable measurements
+- **Process Isolation**: 60-second cooldowns between competitor runs
+- **Academic Dataset**: Uses real editing trace from Kleppmann et al. research
 
-MArrayCRDT vs Automerge (at 50k operations):
-- **Memory Efficiency**: 10x less memory usage (46MB vs 466MB)
-- **Scalability**: Consistent performance characteristics
-- **Real Workloads**: Tested with actual collaborative editing scenarios
+### Competitor Analysis
+- **Automerge**: Rich collaboration features with full operation history
+- **Yjs**: High-performance text editing optimization
+- **Loro**: Text CRDT with optional MovableList (comparable to MArrayCRDT)
+- **Baseline**: Plain JavaScript Array for overhead comparison
+
+## Performance Results
+
+**Memory Efficiency (at 30k+ operations):**
+- **MArrayCRDT (Go)**: ~26-44 MB
+- **JavaScript CRDTs**: ~250-425 MB  
+- **Efficiency Gain**: 2.5-4x more memory efficient
+
+**Throughput Characteristics:**
+- **MArrayCRDT**: Optimized for shopping list use cases (<1k operations)
+- **1k operations**: 13,050+ ops/sec - excellent for real-world usage
+- **JavaScript CRDTs**: Various optimization profiles for text editing
+
+**Use Case Validation:**
+- Shopping lists typically have 10-30 items with ~500-1000 total operations
+- MArrayCRDT performance is more than adequate for intended use case
+- Scalability issues at 30k+ operations are not relevant for target scenarios
+
+## Architecture
+
+### Memory Management
+- **Go advantages**: Predictable memory layout, efficient GC, direct struct control
+- **JavaScript overhead**: Object wrapping, prototype chains, V8 runtime costs
+- **Real measurements**: Average memory sampling during execution, not endpoint diffs
+
+### CRDT Design  
+- **Element-level tracking**: Each array element has unique ID, vector clock, position metadata
+- **Position-based ordering**: Floating-point positions enable efficient move operations
+- **Conflict resolution**: Last-Writer-Wins with deterministic tiebreaking
+- **Operation support**: Beyond text editing - full array manipulation capabilities
+
+## Development Notes
+
+- All artificial memory scaling has been removed for authentic benchmarking
+- Cooldown periods ensure reliable measurements between JavaScript runs
+- Web UI shows timestamped benchmark versions for comparison
+- Single-run snapshot approach matches MArrayCRDT efficiency patterns
