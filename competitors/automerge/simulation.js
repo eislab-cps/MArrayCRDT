@@ -1,31 +1,9 @@
-// Fixed Automerge performance simulation
 const Automerge = require('automerge');
 const fs = require('fs');
 const path = require('path');
 
 // Load data from root data directory
 const DATA_PATH = path.join(__dirname, '../../data/paper.json');
-
-
-// Reliable memory estimation for Automerge
-function estimateAutomergeMemory(doc, operationCount, finalLength) {
-  try {
-    // Base memory for text content (UTF-16) 
-    const textMemory = finalLength * 2;
-    
-    // Automerge: High overhead for rich collaboration (tombstones, vector clocks)
-    const crdtOverhead = operationCount * 50;
-    
-    // Convert to MB
-    const totalBytes = textMemory + crdtOverhead;
-    return Math.max(0.01, totalBytes / 1024 / 1024);
-    
-  } catch (error) {
-    // Fallback: simple estimation
-    return Math.max(0.01, operationCount * 0.0001);
-  }
-}
-
 
 // Load the editing trace data
 function loadEditingTrace() {
@@ -35,20 +13,23 @@ function loadEditingTrace() {
   return lines.map(line => JSON.parse(line));
 }
 
-// Extract operations from the trace  
+// Extract operations from the trace
 function extractOperations(trace, maxOps = 50000) {
   const operations = [];
   
   for (const op of trace) {
-    if (operations.length >= maxOps) break;
-    
     for (const atomicOp of op.ops || []) {
-      if (operations.length >= maxOps) break;
-      
       if (atomicOp.action === 'set' && atomicOp.insert) {
-        operations.push({ type: 'insert', value: atomicOp.value });
+        operations.push({ 
+          type: 'insert', 
+          value: atomicOp.value 
+        });
       } else if (atomicOp.action === 'del') {
         operations.push({ type: 'delete' });
+      }
+      
+      if (operations.length >= maxOps) {
+        return operations;
       }
     }
   }
@@ -56,17 +37,26 @@ function extractOperations(trace, maxOps = 50000) {
   return operations;
 }
 
-// Run benchmark at specific operation count
-function runBenchmark(allOps, maxOps) {
-  const operations = allOps.slice(0, maxOps);
+// Run benchmark with snapshots at milestone operations (single run)
+function runBenchmarkWithSnapshots(operations) {
+  const snapshotPoints = [1000, 5000, 10000, 20000, 30000, 40000, 50000];
+  const results = [];
+  const memorySamples = [];
+  
+  // Initialize document
+  let doc = Automerge.from({text: new Automerge.Text()});
   
   const startTime = Date.now();
-  let doc = Automerge.from({text: new Automerge.Text()});
-  let finalLength = 0;
+  let nextSnapshotIdx = 0;
+  let opCount = 0;
   
-  for (let i = 0; i < operations.length; i++) {
+  console.log('Running single benchmark with snapshots at milestone operations...');
+  console.log('Operations,Time_ms,Ops_per_sec,Avg_Memory_MB,Final_Length');
+  
+  for (let i = 0; i < operations.length && nextSnapshotIdx < snapshotPoints.length; i++) {
     const op = operations[i];
     
+    // Apply operation
     doc = Automerge.change(doc, d => {
       if (op.type === 'insert') {
         d.text.insertAt(d.text.length, op.value);
@@ -76,28 +66,50 @@ function runBenchmark(allOps, maxOps) {
       }
     });
     
-    finalLength = doc.text.length;
+    opCount++;
     
-    if (i % 5000 === 0 && i > 0) {
-      const currentTime = Date.now();
-      const elapsed = currentTime - startTime;
-      const currentOpsPerSec = Math.round((i / elapsed) * 1000);
-      console.log(`  Progress: ${i}/${maxOps} (${currentOpsPerSec} ops/sec)`);
+    // Sample memory every 100 operations
+    if (opCount % 100 === 0) {
+      if (global.gc) global.gc();
+      memorySamples.push(process.memoryUsage().heapUsed);
+    }
+    
+    // Check if we've reached a snapshot point
+    if (opCount === snapshotPoints[nextSnapshotIdx]) {
+      const elapsed = Date.now() - startTime;
+      
+      // Calculate average memory from samples
+      const avgMemoryBytes = memorySamples.length > 0 
+        ? memorySamples.reduce((a, b) => a + b, 0) / memorySamples.length
+        : process.memoryUsage().heapUsed;
+      const avgMemoryMB = avgMemoryBytes / (1024 * 1024);
+      
+      const opsPerSec = Math.round((opCount / elapsed) * 1000);
+      const finalLength = doc.text.length;
+      
+      const result = {
+        operations: opCount,
+        timeMs: elapsed,
+        opsPerSec,
+        memoryMb: parseFloat(avgMemoryMB.toFixed(2)),
+        finalLength
+      };
+      
+      results.push(result);
+      console.log(`${result.operations},${result.timeMs},${result.opsPerSec},${result.memoryMb},${result.finalLength}`);
+      
+      nextSnapshotIdx++;
+    }
+    
+    // Progress reporting
+    if (opCount % 5000 === 0 && opCount > 0) {
+      const elapsed = Date.now() - startTime;
+      const currentOpsPerSec = Math.round((opCount / elapsed) * 1000);
+      console.error(`  Progress: ${opCount} operations (${currentOpsPerSec} ops/sec)`);
     }
   }
   
-  const endTime = Date.now();
-  const timeMs = endTime - startTime;
-  const opsPerSec = Math.round((maxOps / timeMs) * 1000);
-  const memoryMb = estimateAutomergeMemory(doc, maxOps, finalLength);
-  
-  return {
-    operations: maxOps,
-    timeMs,
-    opsPerSec,
-    memoryMb: parseFloat(memoryMb.toFixed(2)),
-    finalLength
-  };
+  return results;
 }
 
 async function runBenchmarks() {
@@ -106,18 +118,12 @@ async function runBenchmarks() {
   
   const trace = loadEditingTrace();
   const allOps = extractOperations(trace, 50000);
-  console.log(`Extracted ${allOps.length} operations from trace`);
-  console.log('\nOperations,Time_ms,Ops_per_sec,Memory_MB,Final_Length');
+  console.log(`Extracted ${allOps.length} operations from trace\n`);
   
-  const scales = [1000, 5000, 10000, 20000, 30000, 40000, 50000];
-  const results = [];
+  // Run single benchmark with snapshots
+  const results = runBenchmarkWithSnapshots(allOps);
   
-  for (const scale of scales) {
-    const result = runBenchmark(allOps, scale);
-    results.push(result);
-    console.log(`${result.operations},${result.timeMs},${result.opsPerSec},${result.memoryMb},${result.finalLength}`);
-  }
-  
+  // Save results to CSV
   const csvHeader = 'system,operations,time_ms,ops_per_sec,memory_mb,final_length';
   const csvRows = results.map(r => 
     `Automerge,${r.operations},${r.timeMs},${r.opsPerSec},${r.memoryMb},${r.finalLength}`
@@ -125,7 +131,8 @@ async function runBenchmarks() {
   const csvContent = [csvHeader, ...csvRows].join('\n');
   
   fs.writeFileSync(path.join(__dirname, 'automerge_results.csv'), csvContent);
-  console.log('\n✅ Results saved to automerge_results.csv\n🎯 Automerge benchmark completed!');
+  console.log('\n✅ Results saved to automerge_results.csv');
+  console.log('🎯 Automerge benchmark completed!');
 }
 
 if (require.main === module) {

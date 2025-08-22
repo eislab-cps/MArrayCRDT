@@ -1,0 +1,8 @@
+system,operations,time_ms,ops_per_sec,memory_mb,final_length
+Baseline,1000,0,Infinity,0.11,964
+Baseline,5000,0,Infinity,0.46,3472
+Baseline,10000,2,5000000,0.95,6980
+Baseline,20000,6,3333333,1.83,14302
+Baseline,30000,15,2000000,1.55,19252
+Baseline,40000,25,1600000,2.25,24700
+Baseline,50000,41,1219512,2.49,32800

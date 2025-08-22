@@ -1,5 +1,21 @@
 [
   {
+    "version": "2025-08-22T14-24-29",
+    "path": "data/benchmark_runs/2025-08-22T14-24-29",
+    "created": "2025-08-22T12:31:56.492Z",
+    "method": "bash_isolated",
+    "fileCount": 7,
+    "description": "Bash-orchestrated isolated benchmarks"
+  },
+  {
+    "version": "2025-08-22T12-07-00",
+    "path": "data/benchmark_runs/2025-08-22T12-07-00",
+    "created": "2025-08-22T10:14:53.206Z",
+    "method": "bash_isolated",
+    "fileCount": 7,
+    "description": "Bash-orchestrated isolated benchmarks"
+  },
+  {
     "version": "2025-08-22T07-17-19",
     "path": "data/benchmark_runs/2025-08-22T07-17-19",
     "created": "2025-08-22T05:22:35.448Z",
@@ -59,14 +75,6 @@
     "version": "2025-08-21T13-34-44",
     "path": "data/benchmark_runs/2025-08-21T13-34-44",
     "created": "2025-08-21T13:34:44.000Z",
-    "method": "bash_isolated",
-    "fileCount": 7,
-    "description": "Bash-orchestrated isolated benchmarks"
-  },
-  {
-    "version": "2025-08-21T13-24-57",
-    "path": "data/benchmark_runs/2025-08-21T13-24-57",
-    "created": "2025-08-21T13:24:57.000Z",
     "method": "bash_isolated",
     "fileCount": 7,
     "description": "Bash-orchestrated isolated benchmarks"
