@@ -37,17 +37,9 @@ run_competitor() {
     node "$script" &
     local competitor_pid=$!
     
-    # Start memory monitoring
-    node mem-monitor.js $competitor_pid &
-    local monitor_pid=$!
-    
-    # Wait for competitor to finish
+    # Wait for competitor to finish (memory monitoring disabled for debugging)
     wait $competitor_pid
     local exit_code=$?
-    
-    # Stop memory monitoring
-    echo "" | node mem-monitor.js $competitor_pid > memory_stats.json 2>/dev/null || true
-    kill $monitor_pid 2>/dev/null || true
     
     if [ $exit_code -eq 0 ]; then
         echo -e "${GREEN}✅ $name completed successfully${NC}"
