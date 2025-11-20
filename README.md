@@ -1,19 +1,19 @@
 # MArrayCRDT - Movable Array Conflict-free Replicated Data Type
 
-A high-performance CRDT implementation in Go that supports full array operations including move, sort, reverse, and swap, with comprehensive benchmarking against leading JavaScript CRDT libraries.
+A CRDT implementation in Go that supports array operations including move, sort, reverse, and swap, with comprehensive benchmarking against leading CRDT libraries.
 
 ## Repository Structure
 
 ```
-├── crdt/                    # Core MArrayCRDT implementation (Go)
-├── benchmarks/             # MArrayCRDT performance benchmarks (Go)
-├── competitors/            # Competitor CRDT benchmarks (JavaScript)
+├── crdt/                  # Core MArrayCRDT implementation (Go)
+├── benchmarks/            # MArrayCRDT performance benchmarks (Go)
+├── competitors/           # Competitor CRDT benchmarks (JavaScript)
 │   ├── automerge/         # Automerge CRDT benchmarks
 │   ├── yjs/               # Yjs CRDT benchmarks  
 │   ├── loro/              # Loro CRDT benchmarks (Text + MovableList)
 │   └── baseline/          # JavaScript Array baseline
-├── web/                    # Interactive web visualization
-├── data/                   # Benchmark data and editing traces
+├── web/                   # Interactive web visualization
+├── data/                  # Benchmark data and editing traces
 │   ├── paper.json         # Real editing trace (259k operations)
 │   └── benchmark_runs/    # Timestamped benchmark results
 └── run_all_benchmarks.sh  # Complete benchmark suite runner
@@ -64,15 +64,11 @@ Open http://localhost:3000 for interactive performance charts with:
 ## Key Features
 
 ### MArrayCRDT Capabilities
-- **Full Array Operations**: Insert, delete, move, swap, sort, reverse, rotate
+- **Array Operations**: Insert, delete, move, swap, sort, reverse, rotate
 - **Strong Consistency**: Vector clock-based conflict resolution
-- **Move Support**: First-class support for element repositioning
-- **Memory Efficient**: 2.5-4x more memory efficient than JavaScript CRDTs
-- **Replica-based**: Changed from "siteID" to "replicaID" terminology
+- **Move Support**: Support for element repositioning
 
 ### Benchmarking Framework
-- **Real Memory Measurement**: No artificial scaling - actual `process.memoryUsage()` sampling
-- **Single-run Snapshots**: Efficient benchmarking like MArrayCRDT (no re-running from scratch)
 - **Average Memory Tracking**: Samples memory every 100 operations for stable measurements
 - **Process Isolation**: 60-second cooldowns between competitor runs
 - **Academic Dataset**: Uses real editing trace from Kleppmann et al. research
@@ -82,23 +78,6 @@ Open http://localhost:3000 for interactive performance charts with:
 - **Yjs**: High-performance text editing optimization
 - **Loro**: Text CRDT with optional MovableList (comparable to MArrayCRDT)
 - **Baseline**: Plain JavaScript Array for overhead comparison
-
-## Performance Results
-
-**Memory Efficiency (at 30k+ operations):**
-- **MArrayCRDT (Go)**: ~26-44 MB
-- **JavaScript CRDTs**: ~250-425 MB  
-- **Efficiency Gain**: 2.5-4x more memory efficient
-
-**Throughput Characteristics:**
-- **MArrayCRDT**: Optimized for shopping list use cases (<1k operations)
-- **1k operations**: 13,050+ ops/sec - excellent for real-world usage
-- **JavaScript CRDTs**: Various optimization profiles for text editing
-
-**Use Case Validation:**
-- Shopping lists typically have 10-30 items with ~500-1000 total operations
-- MArrayCRDT performance is more than adequate for intended use case
-- Scalability issues at 30k+ operations are not relevant for target scenarios
 
 ## Architecture
 
@@ -112,10 +91,3 @@ Open http://localhost:3000 for interactive performance charts with:
 - **Position-based ordering**: Floating-point positions enable efficient move operations
 - **Conflict resolution**: Last-Writer-Wins with deterministic tiebreaking
 - **Operation support**: Beyond text editing - full array manipulation capabilities
-
-## Development Notes
-
-- All artificial memory scaling has been removed for authentic benchmarking
-- Cooldown periods ensure reliable measurements between JavaScript runs
-- Web UI shows timestamped benchmark versions for comparison
-- Single-run snapshot approach matches MArrayCRDT efficiency patterns
